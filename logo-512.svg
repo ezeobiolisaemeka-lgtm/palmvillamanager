@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="64" fill="#facc15"/>
+  <!-- Palm trunk -->
+  <path d="M257 256 C252 295 238 340 257 376" stroke="#7a4a2b" stroke-width="24" stroke-linecap="round" fill="none"/>
+  <!-- Palm leaves large -->
+  <path d="M257 236 C212 188 140 176 96 200" stroke="#0b6b2e" stroke-width="28" stroke-linecap="round" fill="none"/>
+  <path d="M257 236 C302 188 374 176 418 200" stroke="#0b6b2e" stroke-width="28" stroke-linecap="round" fill="none"/>
+  <!-- smaller leaves -->
+  <path d="M257 220 C232 168 188 148 140 158" stroke="#0f8b3b" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M257 220 C282 168 326 148 374 158" stroke="#0f8b3b" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <!-- Coconuts cluster -->
+  <circle cx="250" cy="216" r="18" fill="#5a3b1a"/>
+  <circle cx="272" cy="228" r="18" fill="#5a3b1a"/>
+  <circle cx="232" cy="232" r="14" fill="#5a3b1a"/>
+</text>
+  <!-- Palm Villa text -->
+  <text x="256" y="460" font-family="Inter, Arial, sans-serif" font-size="72" fill="#0f172a" font-weight="800" text-anchor="middle">Palm Villa</text>
+</svg>
+</svg>

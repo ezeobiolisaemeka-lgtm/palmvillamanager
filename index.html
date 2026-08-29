@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Palm Villa Manager</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#facc15">
+    <link rel="icon" href="/logo-192.svg" sizes="192x192">
+    <link rel="apple-touch-icon" href="/logo-512.svg">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="logo.png" alt="Palm Villa Logo" class="logo">
+            <h1>🌴 Palm Villa POS</h1>
+            <p>Restaurant • Bar • Lounge</p>
+        </div>
+
+        <div class="card">
+            <h2>👤 New Customer</h2>
+            <input type="text" id="customerName" placeholder="Customer Name">
+            <br><br>
+            <select id="tableNumber">
+                <option>Table 1</option>
+                <option>Table 2</option>
+                <option>Table 4</option>
+                <option>Table 5</option>
+                <option>VIP</option>
+                <option>Outdoor</option>
+            </select>
+            <br><br>
+            <button onclick="createCustomer()">Create Order</button>
+        </div>
+
+        <div class="card">
+            <h2>🟢 Active Orders</h2>
+            <div id="customerList">No active customers.</div>
+        </div>
+
+        <div class="card">
+            <h2>📡 Live Staff Activity</h2>
+            <p style="margin-top: 0; color: #cbd5e1;">Everything your staff does is recorded here.</p>
+            <table id="staffHistoryTable">
+                <tr>
+                    <th>Time</th>
+                    <th>Customer</th>
+                    <th>Table</th>
+                    <th>Status</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                </tr>
+            </table>
+        </div>
+
+        <h2>🍽 Palm Villa Menu</h2>
+        <div class="menu">
+            <div class="item">
+                <h3>🥩 Isi Ewu</h3>
+                <p>₦9,000</p>
+                <button onclick="addToCart('Isi Ewu', 9000)">ADD</button>
+            </div>
+
+            <div class="item">
+                <h3>🍖 Nkwobi</h3>
+                <p>₦3,000</p>
+                <button onclick="addToCart('Nkwobi', 3000)">ADD</button>
+            </div>
+
+            <div class="item">
+                <h3>🥣 Pepper Soup</h3>
+                <p>₦2,500</p>
+                <button onclick="addToCart('Pepper Soup', 2500)">ADD</button>
+            </div>
+
+            <div class="item">
+                <h3>🐟 Catfish Peppersoup</h3>
+                <p>₦16,000</p>
+                <button onclick="addToCart('Catfish Peppersoup', 16000)">ADD</button>
+            </div>
+
+            <div class="item">
+                <h3>🥗 Ugba</h3>
+                <p>₦3,000</p>
+                <button onclick="addToCart('Ugba', 3000)">ADD</button>
+            </div>
+
+            <div class="item">
+                <h3>🍲 Assorted Pomo</h3>
+                <p>₦200</p>
+                <button onclick="addToCart('Assorted Pomo', 200)">ADD</button>
+                
+            </div>
+
+            <div class="item">
+                <h3>🍛 Abacha</h3>
+                <p>₦3,000</p>
+                <button onclick="addToCart('Abacha', 3000)">ADD</button>
+            </div>
+
+            <div class="item">
+                <h3>🥥 Palm Wine</h3>
+                <p>₦2,500</p>
+                <button onclick="addToCart('Palm Wine', 2500)">ADD</button>
+            </div>
+        </div>
+
+        <h2>🛒 Current Order</h2>
+        <div id="cart"></div>
+
+        <h2>
+            Total:
+            <span id="total">₦0</span>
+        </h2>
+
+        <button onclick="completeSale()">✅ Complete Sale</button>
+        <button onclick="clearCart()">🗑 Clear Cart</button>
+
+        <div id="receipt" class="receipt hidden">
+            <div class="receipt-header">
+                <h3>🧾 Palm Villa Receipt</h3>
+            </div>
+            <div id="receiptContent"></div>
+            <button onclick="hideReceipt()">Close</button>
+        </div>
+
+        <div class="card">
+            <h2>💰 Today's Sales</h2>
+            <h1 id="sales">₦0</h1>
+        </div>
+
+        <div class="card">
+            <h2>💸 Today's Expenses</h2>
+            <h1 id="expenses">₦0</h1>
+        </div>
+
+        <div class="card">
+            <h2>📈 Today's Profit</h2>
+            <h1 id="profit">₦0</h1>
+        </div>
+
+        <div class="buttons">
+            <button onclick="addSale()">➕ Add Sale</button>
+            <button onclick="addExpense()">➖ Add Expense</button>
+            <button onclick="viewReport()">📊 View Report</button>
+            <button onclick="openWorkerOrders()">📋 Staff Summary</button>
+            <button onclick="resetToday()">🔄 Reset Today</button>
+        </div>
+
+        <section class="card drinks-inventory">
+            <h2>🍾 Drinks Inventory</h2>
+
+            <div class="drink-summary">
+                <div class="drink-summary-box">
+                    <span>Total Bought</span>
+                    <strong id="totalDrinksBought">0</strong>
+                </div>
+
+                <div class="drink-summary-box">
+                    <span>Total Sold</span>
+                    <strong id="totalDrinksSold">0</strong>
+                </div>
+
+                <div class="drink-summary-box">
+                    <span>Stock Left</span>
+                    <strong id="totalDrinksStock">0</strong>
+                </div>
+
+                <div class="drink-summary-box">
+                    <span>Total Sales</span>
+                    <strong id="totalDrinksSales">₦0</strong>
+                </div>
+
+                <div class="drink-summary-box">
+                    <span>Total Profit</span>
+                    <strong id="totalDrinksProfit">₦0</strong>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Drink Brand</label>
+                <input type="text" id="drinkBrand" placeholder="e.g. Star">
+            </div>
+
+            <div class="form-group">
+                <label>Quantity Bought</label>
+                <input type="number" id="drinkBought" placeholder="e.g. 50">
+            </div>
+
+            <div class="form-group">
+                <label>Buying Price Per Drink</label>
+                <input type="number" id="drinkBuyPrice" placeholder="e.g. 500">
+            </div>
+
+            <div class="form-group">
+                <label>Quantity Sold</label>
+                <input type="number" id="drinkSold" placeholder="e.g. 35">
+            </div>
+
+            <div class="form-group">
+                <label>Selling Price Per Drink</label>
+                <input type="number" id="drinkSellPrice" placeholder="e.g. 800">
+            </div>
+
+            <button onclick="addDrink()">➕ Add Drink</button>
+            <div id="drinksList"></div>
+        </section>
+
+        <div class="card">
+            <h2>📋 Today's Sales History</h2>
+            <table id="salesTable">
+                <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Total</th>
+                </tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>🧾 Staff History</h2>
+            <table id="staffHistoryTable">
+                <tr>
+                    <th>Time</th>
+                    <th>Customer</th>
+                    <th>Table</th>
+                    <th>Status</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const managerPassword = "PalmVilla2026";
+
+        if (params.get("manager") !== "1") {
+            window.location.replace("orders.html?summary=1");
+        }
+
+        const enteredPassword = prompt("Enter manager password:");
+        if (enteredPassword !== managerPassword) {
+            alert("Incorrect password. Redirecting to staff summary page.");
+            window.location.replace("orders.html?summary=1");
+        }
+    </script>
+    <script src="script.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+            .then(() => console.log('ServiceWorker registered'))
+            .catch(err => console.warn('SW register failed', err));
+        }
+    </script>
+</body>
+
+</html>

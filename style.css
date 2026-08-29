@@ -1,0 +1,488 @@
+:root{
+    --bg-0: #071026;
+    --bg-1: #0b1220;
+    --card-grad-1: rgba(30,41,59,0.95);
+    --card-grad-2: rgba(15,23,42,0.98);
+    --accent-1: #facc15;
+    --accent-2: #00ff88;
+    --muted: #cbd5e1;
+    --glass: rgba(255,255,255,0.04);
+    --btn-shadow: 0 10px 22px rgba(15,23,42,0.18);
+}
+
+body{
+    margin:0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 100%);
+    color: #f8fafc;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+}
+
+/* Compact phone-only adjustments for very small screens */
+@media (max-width: 420px) {
+    body { font-size: 15px; }
+    .card { padding: 14px 12px; border-radius: 12px; }
+    .menu { grid-template-columns: 1fr; gap: 10px; }
+    .item { padding: 12px 10px; min-height: 80px; }
+    .item p { font-size: 16px; }
+    .header h1 { font-size: 1.6rem; }
+    .buttons button, .item button { padding: 14px 16px; border-radius: 12px; }
+    #cart { padding: 12px; }
+    .customer-card { padding: 12px; border-radius: 10px; }
+}
+
+/* Use the Inter font when available */
+body, input, select, button { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+
+.container{
+    width: min(1180px, 92%);
+    margin: 40px auto 80px;
+}
+
+h1{
+    text-align:center;
+    color:#facc15;
+    letter-spacing:0.04em;
+}
+
+.card{
+    background: linear-gradient(180deg, var(--card-grad-1), var(--card-grad-2));
+    padding:20px 16px;
+    margin:16px 0;
+    border-radius:18px;
+    text-align:center;
+    box-shadow:0 14px 40px rgba(2,6,23,0.55);
+    border:1px solid rgba(250,204,21,0.08);
+}
+
+.card h2{
+    margin:0;
+}
+
+.card h3{
+    font-size:30px;
+    color:#00ff88;
+}
+
+.buttons{
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+}
+
+button{
+    padding:15px 18px;
+    font-size:17px;
+    border:none;
+    border-radius:12px;
+    background:linear-gradient(135deg, var(--accent-1) 0%, #f59e0b 100%);
+    color:#111827;
+    cursor:pointer;
+    font-weight:800;
+    transition:transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+    box-shadow: var(--btn-shadow);
+}
+
+button:hover{
+    background:linear-gradient(135deg, #fcd34d 0%, #fbbf24 100%);
+    transform:translateY(-1px);
+    filter:brightness(1.02);
+}
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+
+th,td{
+    border:1px solid #444;
+    padding:10px;
+    text-align:center;
+}
+
+th{
+    background:gold;
+    color:black;
+}
+
+td{
+    background:#222;
+}
+.menu{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    gap:18px;
+    margin-top:20px;
+}
+
+.item{
+    background: linear-gradient(180deg, rgba(20,28,45,0.9), rgba(10,14,24,0.92));
+    padding:16px 12px;
+    border-radius:14px;
+    text-align:center;
+    border:1px solid rgba(148,163,184,0.08);
+    box-shadow: var(--btn-shadow);
+    min-height:110px;
+}
+
+.item h3{
+margin:0;
+font-weight:700;
+letter-spacing:0.02em;
+text-transform:capitalize;
+}
+
+.item p{
+font-size:18px;
+color:var(--accent-2);
+font-weight:700;
+}
+
+.item button{
+margin-top:10px;
+width:100%;
+}
+
+#cart{
+    background:linear-gradient(180deg, rgba(17,24,39,1), rgba(15,23,42,0.9));
+    padding:18px;
+    border-radius:16px;
+    margin:20px 0;
+    min-height:110px;
+    border:1px solid rgba(148,163,184,0.15);
+}
+.header{
+    text-align:center;
+    margin-bottom:30px;
+    padding:28px 18px 8px;
+}
+
+.logo{
+    width:120px;
+    height:120px;
+    object-fit:contain;
+    margin-bottom:10px;
+    filter:drop-shadow(0 10px 20px rgba(250,204,21,0.2));
+}
+
+.header h1{
+    color:#facc15;
+    margin:10px 0;
+    font-size:42px;
+}
+
+.header p{
+    color:#cbd5e1;
+    font-size:18px;
+    letter-spacing:0.06em;
+}
+.cart-item{
+    background:linear-gradient(180deg, rgba(30,41,59,0.95), rgba(15,23,42,0.95));
+    margin:12px 0;
+    padding:16px 18px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    border:1px solid rgba(148,163,184,0.12);
+}
+
+.cart-item h3 {
+    margin:0;
+    font-size:18px;
+    flex:1;
+    text-align:left;
+}
+
+.cart-item button{
+    margin:0;
+    width:40px;
+    padding:8px 0;
+    min-width:40px;
+}
+
+.cart-item span{
+    font-size:20px;
+    margin:0;
+    min-width:30px;
+    text-align:center;
+}
+
+.cart-item p {
+    margin:0;
+    font-weight:bold;
+    color:#facc15;
+}
+
+/* ===============================
+   PALM VILLA - FULL WIDTH DRINKS
+================================ */
+
+.drinks-inventory {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 30px 0 !important;
+    padding: 30px !important;
+    box-sizing: border-box !important;
+}
+
+.drinks-inventory h2 {
+    font-size: 32px !important;
+    margin-bottom: 25px !important;
+}
+
+.drinks-inventory .form-group {
+    width: 100% !important;
+    margin-bottom: 20px !important;
+}
+
+.drinks-inventory input {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 16px !important;
+    font-size: 18px !important;
+}
+
+.drinks-inventory button {
+    width: 100% !important;
+    padding: 17px !important;
+    font-size: 19px !important;
+}
+
+.drinks-inventory #drinksList {
+    width: 100% !important;
+    margin-top: 30px !important;
+}
+/* ===============================
+   DRINK SUMMARY
+================================ */
+
+.drink-summary {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+    width: 100%;
+    margin: 25px 0 30px;
+}
+
+.drink-summary-box {
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.drink-summary-box span {
+    display: block;
+    font-size: 15px;
+    margin-bottom: 10px;
+}
+
+.drink-summary-box strong {
+    display: block;
+    font-size: 25px;
+}
+
+/* Mobile */
+@media (max-width: 800px) {
+
+    .drink-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}input,select{
+    width:100%;
+    padding:14px 16px;
+    font-size:18px;
+    border-radius:12px;
+    margin-top:10px;
+    box-sizing:border-box;
+    border:1px solid rgba(148,163,184,0.24);
+    background:#0f172a;
+    color:#f8fafc;
+}
+
+.customer-card{
+    background:linear-gradient(180deg, rgba(31,41,55,0.95), rgba(17,24,39,0.98));
+    padding:16px 15px;
+    margin:10px 0;
+    border-radius:12px;
+    cursor:pointer;
+    border-left:5px solid #facc15;
+    box-shadow:0 8px 18px rgba(0,0,0,0.18);
+}
+
+.receipt {
+    background: #111;
+    border: 1px solid #d4af37;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    color: #fff;
+}
+
+.receipt.hidden {
+    display: none;
+}
+
+.receipt-header {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.receipt-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 8px 0;
+    border-bottom: 1px solid #333;
+    padding-bottom: 8px;
+}
+
+.receipt-total {
+    margin-top: 15px;
+    font-size: 22px;
+    color: #ffd700;
+    font-weight: bold;
+}
+
+.empty-cart {
+    color: #bbb;
+    text-align: center;
+    padding: 12px;
+}
+
+#customerList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.customer-card {
+    border-left: 5px solid gold;
+    transition: 0.2s ease;
+}
+
+.customer-card:hover {
+    transform: translateY(-1px);
+}
+
+@media (max-width: 800px) {
+    .container {
+        width: min(96%, 100%);
+        margin: 24px auto 60px;
+    }
+
+    .header {
+        padding-top: 12px;
+        margin-bottom: 18px;
+    }
+
+    .header h1 {
+        font-size: 2.1rem;
+    }
+
+    .header p {
+        font-size: 1rem;
+    }
+
+    .card {
+        padding: 18px 14px;
+        margin: 14px 0;
+    }
+
+    .card h2 {
+        font-size: 1.4rem;
+    }
+
+    .menu {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .item {
+        padding: 14px 10px;
+    }
+
+    .item h3 {
+        font-size: 1.1rem;
+    }
+
+    .item p {
+        font-size: 1rem;
+    }
+
+    .cart-item {
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding: 12px 10px;
+    }
+
+    .cart-item h3 {
+        flex: 1 1 100%;
+        font-size: 1rem;
+        margin-bottom: 8px;
+    }
+
+    .cart-item button {
+        width: 38px;
+        min-width: 38px;
+    }
+
+    .buttons button,
+    .card button,
+    .drinks-inventory button {
+        width: 100%;
+    }
+
+    .drink-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .drink-summary-box {
+        padding: 14px 10px;
+    }
+
+    .drink-summary-box strong {
+        font-size: 1.15rem;
+    }
+
+    .drinks-inventory {
+        padding: 18px 14px !important;
+    }
+
+    .drinks-inventory h2 {
+        font-size: 1.8rem !important;
+    }
+}
+
+/* Per-item colorful accents for a livelier mobile UI */
+.menu .item:nth-child(1) { border-left: 6px solid #f97316; }
+.menu .item:nth-child(2) { border-left: 6px solid #ef4444; }
+.menu .item:nth-child(3) { border-left: 6px solid #8b5cf6; }
+.menu .item:nth-child(4) { border-left: 6px solid #06b6d4; }
+.menu .item:nth-child(5) { border-left: 6px solid #10b981; }
+.menu .item:nth-child(6) { border-left: 6px solid #f59e0b; }
+.menu .item:nth-child(7) { border-left: 6px solid #fb7185; }
+.menu .item:nth-child(8) { border-left: 6px solid #60a5fa; }
+.menu .item:nth-child(9) { border-left: 6px solid #a78bfa; }
+.menu .item:nth-child(10){ border-left: 6px solid #f472b6; }
+.menu .item:nth-child(11){ border-left: 6px solid #34d399; }
+.menu .item:nth-child(12){ border-left: 6px solid #f59e0b; }
+.menu .item:nth-child(13){ border-left: 6px solid #facc15; }
+
+.menu .item:hover { transform: translateY(-4px) scale(1.01); box-shadow: 0 20px 40px rgba(2,6,23,0.6); }
+
+/* Slightly different heading styles per item for unique text feel */
+.menu .item:nth-child(odd) h3 { font-style: italic; }
+.menu .item:nth-child(even) h3 { letter-spacing: 0.03em; text-transform: uppercase; }
+
+/* Make buttons more touch-friendly on phones */
+button { padding: 16px 20px; border-radius: 14px; }
+
+/* Accent the page title with a multicolor gradient */
+.header h1 { background: linear-gradient(90deg, #facc15, #f97316, #ef4444, #8b5cf6); -webkit-background-clip: text; background-clip: text; color: transparent; }

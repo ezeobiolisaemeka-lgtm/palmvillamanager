@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="32" fill="#facc15"/>
+  <!-- Palm trunk -->
+  <path d="M98 96 C96 110 90 128 98 142" stroke="#7a4a2b" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <!-- Palm leaves -->
+  <path d="M98 96 C80 74 48 72 30 86" stroke="#0b6b2e" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <path d="M98 96 C118 74 150 72 168 86" stroke="#0b6b2e" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <path d="M98 88 C86 64 64 54 42 60" stroke="#0f8b3b" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <path d="M98 88 C110 64 132 54 154 60" stroke="#0f8b3b" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <!-- Coconuts -->
+  <circle cx="94" cy="84" r="6" fill="#5a3b1a"/>
+  <circle cx="106" cy="90" r="6" fill="#5a3b1a"/>
+  <!-- Subtle Palm Villa text -->
+  <text x="96" y="168" font-family="Inter, Arial, sans-serif" font-size="18" fill="#0f172a" font-weight="700" text-anchor="middle">Palm Villa</text>
+</svg>

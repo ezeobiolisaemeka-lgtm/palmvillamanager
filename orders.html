@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palm Villa Worker Orders</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#facc15">
+    <link rel="icon" href="/logo-192.svg" sizes="192x192">
+    <link rel="apple-touch-icon" href="/logo-512.svg">
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(180deg, #0d1117 0%, #111827 100%);
+            color: #f8fafc;
+        }
+
+        .orders-container {
+            width: min(1100px, 92%);
+            margin: 40px auto 80px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .topbar h1 {
+            margin: 0;
+            color: #facc15;
+            font-size: 2rem;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .summary-header {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 18px;
+            margin: 20px 0 24px;
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 700px) {
+            .orders-container {
+                width: min(96%, 100%);
+                margin: 24px auto 60px;
+            }
+
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+                margin-bottom: 16px;
+            }
+
+            .topbar h1 {
+                font-size: 1.7rem;
+            }
+
+            .summary-header {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 12px;
+            }
+
+            .stat-box {
+                padding: 16px 12px;
+            }
+
+            .stat-box strong {
+                font-size: 1.2rem;
+            }
+
+            .action-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box,
+            .print-btn,
+            .back-btn {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .print-btn {
+                padding: 14px 16px;
+            }
+
+            .customer-summary {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+
+            .summary-card {
+                padding: 16px;
+            }
+
+            .summary-card .items {
+                padding-left: 16px;
+            }
+        }
+
+        .print-btn {
+            border: none;
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            color: #062b1b;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .stat-box {
+            background: linear-gradient(180deg, rgba(30,41,59,0.95), rgba(15,23,42,0.98));
+            border-radius: 18px;
+            padding: 20px;
+            border: 1px solid rgba(250,204,21,0.12);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+        }
+
+        .stat-box span {
+            display: block;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+        }
+
+        .stat-box strong {
+            font-size: 1.6rem;
+            color: #facc15;
+        }
+
+        .search-box {
+            width: 100%;
+            margin-bottom: 20px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(148,163,184,0.25);
+            background: #0f172a;
+            color: #fff;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .customer-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            margin-top: 20px;
+        }
+
+        .menu-section {
+            margin-top: 24px;
+            margin-bottom: 12px;
+        }
+
+        .menu-section h3 {
+            margin-bottom: 12px;
+            color: #facc15;
+        }
+
+        .menu-category {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+        }
+
+        .menu-category .item {
+            min-height: 100%;
+        }
+
+        .summary-card {
+            background: linear-gradient(180deg, rgba(30,41,59,0.95), rgba(15,23,42,0.98));
+            padding: 20px;
+            border-radius: 18px;
+            border: 1px solid rgba(250,204,21,0.12);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+        }
+
+        .customer-directory {
+            background: linear-gradient(180deg, rgba(30,41,59,0.95), rgba(15,23,42,0.98));
+            border-radius: 18px;
+            border: 1px solid rgba(250,204,21,0.12);
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+        }
+
+        .customer-directory h2 {
+            margin-top: 0;
+            color: #facc15;
+        }
+
+        .customer-directory-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .directory-card {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(148,163,184,0.2);
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .directory-card strong {
+            display: block;
+            font-size: 1.05rem;
+            color: #f8fafc;
+        }
+
+        .directory-card span {
+            color: #cbd5e1;
+        }
+
+        .summary-card h3 {
+            margin-top: 0;
+            color: #facc15;
+        }
+
+        .summary-card .meta {
+            color: #cbd5e1;
+            margin-bottom: 10px;
+        }
+
+        .summary-card .items {
+            margin: 10px 0 0;
+            padding-left: 18px;
+            color: #f8fafc;
+        }
+
+        .summary-card .items li {
+            margin: 8px 0;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .summary-table th,
+        .summary-table td {
+            border: 1px solid rgba(148,163,184,0.2);
+            padding: 8px 10px;
+            text-align: left;
+            color: #f8fafc;
+        }
+
+        .summary-table th {
+            background: rgba(250,204,21,0.15);
+            color: #facc15;
+        }
+
+        .summary-card .total {
+            margin-top: 12px;
+            font-weight: bold;
+            color: #4ade80;
+            font-size: 1.1rem;
+        }
+
+        .empty {
+            background: rgba(15,23,42,0.96);
+            border: 1px solid rgba(148,163,184,0.2);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            color: #cbd5e1;
+        }
+
+        .back-btn,
+        .secondary-btn {
+            display: inline-block;
+            text-decoration: none;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, #facc15 0%, #f59e0b 100%);
+            color: #111827;
+        }
+
+        .secondary-btn {
+            background: rgba(148,163,184,0.12);
+            color: #f8fafc;
+            border: 1px solid rgba(148,163,184,0.2);
+        }
+
+        @media print {
+            body {
+                background: #fff;
+                color: #111827;
+            }
+
+            .back-btn,
+            .print-btn,
+            .search-box,
+            .topbar a {
+                display: none !important;
+            }
+
+            .orders-container {
+                width: 100%;
+                margin: 0;
+            }
+
+            .summary-card,
+            .stat-box {
+                box-shadow: none;
+                border: 1px solid #d1d5db;
+                background: #fff;
+                color: #111827;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="orders-container">
+        <div class="topbar">
+            <h1 id="pageTitle">📋 Staff Order Sheet</h1>
+            <div class="topbar-actions">
+                <a id="orderEntryLink" class="secondary-btn" href="orders.html">Order Entry</a>
+                <a class="back-btn" href="index.html?manager=1">Manager POS</a>
+            </div>
+        </div>
+
+        <div class="summary-header">
+            <div class="stat-box">
+                <span>Total Customers</span>
+                <strong id="totalCustomers">0</strong>
+            </div>
+            <div class="stat-box">
+                <span>Orders Today</span>
+                <strong id="totalOrders">0</strong>
+            </div>
+        </div>
+
+        <div class="action-row">
+            <input id="customerSearch" class="search-box" type="text" placeholder="Search customer or table..." style="margin-bottom: 0; max-width: 420px;">
+            <button id="printSummaryBtn" class="print-btn" type="button">Print Summary</button>
+        </div>
+
+        <div class="card" id="newCustomerCard">
+            <h2>👤 New Customer</h2>
+            <input type="text" id="customerName" placeholder="Customer Name">
+            <br><br>
+            <select id="tableNumber">
+                <option>Table 1</option>
+                <option>Table 2</option>
+                <option>Table 3</option>
+                <option>Table 4</option>
+                <option>Table 5</option>
+                <option>VIP</option>
+                <option>Outdoor</option>
+            </select>
+            <br><br>
+            <button onclick="createCustomer()">Create Order</button>
+        </div>
+
+        <div class="card" id="activeOrdersCard">
+            <h2>🟢 Active Orders</h2>
+            <div id="customerList">No active customers.</div>
+        </div>
+
+        <h2 id="staffMenuTitle">🍽 Staff Menu</h2>
+
+        <div class="menu-section" id="staffMenuBlock">
+            <h3>Meals</h3>
+            <div class="menu-category">
+                <div class="item"><h3>🥩 Isi Ewu</h3><p>₦9,000</p><button onclick="addToCart('Isi Ewu', 9000)">ADD</button></div>
+                <div class="item"><h3>🍖 Nkwobi</h3><p>₦3,000</p><button onclick="addToCart('Nkwobi', 3000)">ADD</button></div>
+                <div class="item"><h3>🥣 Pepper Soup</h3><p>₦4,000</p><button onclick="addToCart('Pepper Soup', 4000)">ADD</button></div>
+                <div class="item"><h3>🐟 Catfish Peppersoup</h3><p>₦16,000</p><button onclick="addToCart('Catfish Peppersoup', 16000)">ADD</button></div>
+                <div class="item"><h3>🥗 Ugba</h3><p>₦3,000</p><button onclick="addToCart('Ugba', 3000)">ADD</button></div>
+                <div class="item"><h3>🍲 Assorted Pomo (per piece)</h3><p>₦200</p><button onclick="addToCart('Assorted Pomo', 200)">ADD</button></div>
+                <div class="item"><h3>🍛 Abacha</h3><p>₦3,000</p><button onclick="addToCart('Abacha', 3000)">ADD</button></div>
+            </div>
+        </div>
+
+        <div class="menu-section">
+            <h3>Drinks</h3>
+            <div class="menu-category">
+                <div class="item"><h3>� Gulder</h3><p>₦1,500</p><button onclick="addToCart('Gulder', 1500)">ADD</button></div>
+                <div class="item"><h3>🥤 Trophy</h3><p>₦1,200</p><button onclick="addToCart('Trophy', 1200)">ADD</button></div>
+                <div class="item"><h3>🥤 Goldberg</h3><p>₦1,200</p><button onclick="addToCart('Goldberg', 1200)">ADD</button></div>
+                <div class="item"><h3>🥤 Star</h3><p>₦1,500</p><button onclick="addToCart('Star', 1500)">ADD</button></div>
+                <div class="item"><h3>🥤 33</h3><p>₦1,200</p><button onclick="addToCart('33', 1200)">ADD</button></div>
+                <div class="item"><h3>🥤 Small Stout</h3><p>₦1,200</p><button onclick="addToCart('Small Stout', 1200)">ADD</button></div>
+                <div class="item"><h3>🥤 Big Stout</h3><p>₦2,000</p><button onclick="addToCart('Big Stout', 2000)">ADD</button></div>
+                <div class="item"><h3>🥤 Smire Off Ice</h3><p>₦1,200</p><button onclick="addToCart('Smire Off Ice', 1200)">ADD</button></div>
+                <div class="item"><h3>🥃 Gordon's</h3><p>₦10,000</p><button onclick="addToCart('Gordon\'s', 10000)">ADD</button></div>
+                <div class="item"><h3>🥃 Best Whiskey</h3><p>₦2,500</p><button onclick="addToCart('Best Whiskey', 2500)">ADD</button></div>
+                <div class="item"><h3>🥃 Longrider</h3><p>₦1,600</p><button onclick="addToCart('Longrider', 1600)">ADD</button></div>
+                <div class="item"><h3>🥃 Legend</h3><p>₦1,500</p><button onclick="addToCart('Legend', 1500)">ADD</button></div>
+                <div class="item"><h3>🥃 Eagle</h3><p>₦1,200</p><button onclick="addToCart('Eagle', 1200)">ADD</button></div>
+            </div>
+        </div>
+
+        <div class="menu-section">
+            <h3>Water</h3>
+            <div class="menu-category">
+                <div class="item"><h3>💧 Table Water</h3><p>₦500</p><button onclick="addToCart('Table Water', 500)">ADD</button></div>
+                <div class="item"><h3>💧 Small Water</h3><p>₦700</p><button onclick="addToCart('Small Water', 700)">ADD</button></div>
+                <div class="item"><h3>💧 Bottle Water</h3><p>₦1,000</p><button onclick="addToCart('Bottle Water', 1000)">ADD</button></div>
+            </div>
+        </div>
+
+        <div class="menu-section">
+            <h3>Soft Drinks</h3>
+            <div class="menu-category">
+                <div class="item"><h3>🥤 Coke</h3><p>₦800</p><button onclick="addToCart('Coke', 800)">ADD</button></div>
+                <div class="item"><h3>🥤 Fanta</h3><p>₦800</p><button onclick="addToCart('Fanta', 800)">ADD</button></div>
+                <div class="item"><h3>🥤 Sprite</h3><p>₦800</p><button onclick="addToCart('Sprite', 800)">ADD</button></div>
+                <div class="item"><h3>🥤 Pepsi</h3><p>₦800</p><button onclick="addToCart('Pepsi', 800)">ADD</button></div>
+            </div>
+        </div>
+
+        <div id="currentOrderBlock">
+            <h2>🛒 Current Order</h2>
+            <div id="cart"></div>
+        </div>
+
+        <h2>Total: <span id="total">₦0</span></h2>
+        <button onclick="completeSale()">✅ Complete Sale</button>
+        <button onclick="clearCart()">🗑 Clear Cart</button>
+
+        <div class="customer-directory" id="customerDirectorySection">
+            <h2>👥 Customer List</h2>
+            <div id="customerDirectoryList" class="customer-directory-list"></div>
+        </div>
+
+        <div id="customerSummary" class="customer-summary"></div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+            .then(() => console.log('ServiceWorker registered'))
+            .catch(err => console.warn('SW register failed', err));
+        }
+    </script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const summaryMode = urlParams.get('summary') === '1';
+
+        if (summaryMode) {
+            document.getElementById('pageTitle').textContent = '📋 Staff Summary';
+            document.getElementById('orderEntryLink').style.display = 'inline-block';
+            ['newCustomerCard', 'activeOrdersCard', 'staffMenuBlock', 'currentOrderBlock', 'staffMenuTitle'].forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+        } else {
+            document.getElementById('orderEntryLink').style.display = 'none';
+        }
+
+        function renderCustomerDirectory(customers) {
+            const directoryList = document.getElementById('customerDirectoryList');
+            directoryList.innerHTML = customers.map((customer) => {
+                const orderCount = (customer.orders || []).length;
+                return `
+                    <div class="directory-card">
+                        <strong>${customer.name}</strong>
+                        <span>Table: ${customer.table}</span>
+                        <br>
+                        <span>${orderCount} order(s)</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadSummary() {
+            const summaryBox = document.getElementById('customerSummary');
+            const customers = JSON.parse(localStorage.getItem('palmVillaCustomers')) || [];
+            const searchValue = (document.getElementById('customerSearch')?.value || '').toLowerCase().trim();
+
+            const filteredCustomers = customers.filter((customer) => {
+                const text = `${customer.name} ${customer.table}`.toLowerCase();
+                return text.includes(searchValue);
+            });
+
+            const totalOrders = filteredCustomers.reduce((sum, customer) => sum + (customer.orders || []).length, 0);
+
+            document.getElementById('totalCustomers').textContent = filteredCustomers.length.toString();
+            document.getElementById('totalOrders').textContent = totalOrders.toString();
+            renderCustomerDirectory(filteredCustomers);
+
+            if (!filteredCustomers.length) {
+                summaryBox.innerHTML = '<div class="empty">No matching customer orders found.</div>';
+                return;
+            }
+
+            summaryBox.innerHTML = filteredCustomers.map((customer) => {
+                const orders = customer.orders || [];
+                const total = orders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
+
+                const orderTables = orders.length
+                    ? orders.map((order, orderIndex) => {
+                        const tableRows = (order.items || []).map(item => `
+                            <tr>
+                                <td>${item.name}</td>
+                                <td>${item.qty}</td>
+                                <td>₦${(Number(item.price) * Number(item.qty)).toLocaleString()}</td>
+                            </tr>
+                        `).join('');
+
+                        return `
+                            <div style="margin-top: 12px;">
+                                <strong>Order ${orderIndex + 1}</strong>
+                                <table class="summary-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Qty</th>
+                                            <th>Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${tableRows || '<tr><td colspan="3">No items</td></tr>'}</tbody>
+                                </table>
+                                <div class="total">Order total: ₦${Number(order.total || 0).toLocaleString()}</div>
+                            </div>
+                        `;
+                    }).join('')
+                    : '<p>No orders yet.</p>';
+
+                return `
+                    <div class="summary-card">
+                        <h3>${customer.name}</h3>
+                        <div class="meta">Table: ${customer.table}</div>
+                        ${orderTables}
+                        <div class="total">Customer total: ₦${total.toLocaleString()}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        document.getElementById('customerSearch').addEventListener('input', loadSummary);
+        document.getElementById('printSummaryBtn').addEventListener('click', () => window.print());
+        loadSummary();
+    </script>
+</body>
+</html>

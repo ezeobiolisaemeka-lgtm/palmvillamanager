@@ -1,0 +1,15 @@
+/node_modules/
+/.env
+.DS_Store
+*.zip
+*.log
+.vscode/
+
+# Mac/Windows
+Thumbs.db
+
+# npm
+package-lock.json
+
+# Local python server file
+/tmp/palmvilla_http.log

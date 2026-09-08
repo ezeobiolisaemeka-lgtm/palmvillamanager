@@ -12,6 +12,20 @@ function saveCustomers() {
     localStorage.setItem("palmVillaCustomers", JSON.stringify(customers));
 }
 
+function normalizeCustomerRecord(customer) {
+    if (!customer || typeof customer !== 'object') return customer;
+
+    customer.name = customer.name || "Unnamed Customer";
+    customer.table = customer.table || "Walk-in";
+    customer.cart = Array.isArray(customer.cart) ? customer.cart : [];
+    customer.orders = Array.isArray(customer.orders) ? customer.orders : [];
+    customer.owed = Number(customer.owed || 0);
+    customer.paid = Number(customer.paid || 0);
+    customer.payments = Array.isArray(customer.payments) ? customer.payments : [];
+
+    return customer;
+}
+
 function getSelectedCustomer() {
     if (currentCustomer === null || !customers[currentCustomer]) {
         return null;
@@ -57,7 +71,8 @@ function loadData() {
         saveData();
     }
 
-    customers = JSON.parse(localStorage.getItem("palmVillaCustomers")) || [];
+    customers = (JSON.parse(localStorage.getItem("palmVillaCustomers")) || []).map(normalizeCustomerRecord);
+    saveCustomers();
     updateDashboard();
     displaySalesHistory();
     displayStaffHistory();
@@ -301,6 +316,15 @@ function completeSale() {
         ? customers[currentCustomer].table
         : "Walk-in";
 
+    const amountPaid = Number(prompt("How much did the customer pay now? Enter 0 if unpaid:", "0") || 0);
+
+    if (isNaN(amountPaid) || amountPaid < 0) {
+        alert("Please enter a valid payment amount.");
+        return;
+    }
+
+    const amountOwed = Math.max(total - amountPaid, 0);
+
     // Add to total sales
 
     sales += total;
@@ -331,6 +355,7 @@ function completeSale() {
             total: Number(item.price) * Number(item.qty)
         })),
         total: Number(total),
+        status: amountOwed > 0 ? "Unpaid" : "Paid",
         time: new Date().toLocaleString([], {
             day: '2-digit',
             month: 'short',
@@ -341,13 +366,20 @@ function completeSale() {
     });
 
     if (currentCustomer !== null && customers[currentCustomer]) {
-        customers[currentCustomer].orders.push({
+        const customer = customers[currentCustomer];
+        customer.orders.push({
             items: cart.map(item => ({ ...item })),
             total: total,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            paid: amountPaid,
+            owed: amountOwed,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            date: new Date().toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' }),
+            status: amountOwed > 0 ? "Unpaid" : "Paid"
         });
 
-        customers[currentCustomer].cart = [];
+        customer.owed = Number(customer.owed || 0) + amountOwed;
+        customer.paid = Number(customer.paid || 0) + amountPaid;
+        customer.cart = [];
         saveCustomers();
         displayCustomers();
         if (typeof loadSummary === "function") {
@@ -363,12 +395,58 @@ function completeSale() {
     displayStaffHistory();
 
     showReceipt(cart, total, customerName);
-    alert("Sale Completed Successfully!");
-
+    alert(amountOwed > 0 ? `Sale Completed. Customer still owes ₦${amountOwed.toLocaleString()}.` : "Sale Completed Successfully!");
 
     cart = [];
 
     displayCart();
+}
+
+function recordCustomerPayment(index, amount) {
+    if (!customers[index]) return;
+
+    const customer = customers[index];
+    const payment = Number(amount);
+
+    if (isNaN(payment) || payment <= 0) {
+        alert("Please enter a valid payment amount.");
+        return;
+    }
+
+    const currentDebt = Number(customer.owed || 0);
+    const reducedDebt = Math.max(currentDebt - payment, 0);
+    customer.owed = reducedDebt;
+    customer.payments = Array.isArray(customer.payments) ? customer.payments : [];
+    customer.payments.push({
+        amount: payment,
+        time: new Date().toLocaleString([], {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        })
+    });
+
+    if (Array.isArray(customer.orders)) {
+        customer.orders.forEach((order) => {
+            if (Number(order.owed || 0) > 0 && payment > 0) {
+                const orderReduction = Math.min(Number(order.owed || 0), payment);
+                order.owed = Math.max(Number(order.owed || 0) - orderReduction, 0);
+                order.paid = Number(order.paid || 0) + orderReduction;
+                order.status = order.owed > 0 ? "Unpaid" : "Paid";
+                payment -= orderReduction;
+            }
+        });
+    }
+
+    saveCustomers();
+    displayCustomers();
+    if (typeof loadSummary === "function") {
+        loadSummary();
+    }
+
+    alert(`${customer.name} payment recorded successfully.`);
 }
 
 function clearCart() {
@@ -798,12 +876,15 @@ function createCustomer() {
         return;
     }
 
-    customers.push({
+    customers.push(normalizeCustomerRecord({
         name: name,
         table: table,
         cart: [],
-        orders: []
-    });
+        orders: [],
+        owed: 0,
+        paid: 0,
+        payments: []
+    }));
 
     const newCustomer = customers[customers.length - 1];
     staffHistory.push({
@@ -852,13 +933,16 @@ function displayCustomers() {
     customers.forEach((customer, index) => {
         let activeClass = currentCustomer === index ? "style=\"border-left-color:#00ff88; background:#2a3b2a;\"" : "";
         const currentItems = (customer.cart || []).map(item => `${item.name} x${item.qty}`).join(", ") || "No items yet";
+        const outstanding = Number(customer.owed || 0);
+        const orderCount = (customer.orders || []).length;
 
         list.innerHTML += `
             <div class="customer-card" ${activeClass} onclick="selectCustomer(${index})">
                 <strong>${customer.name}</strong><br>
                 ${customer.table}<br>
-                <small>${customer.orders.length} order(s)</small>
-                <div style="margin-top:8px; font-size:12px; color:#dbeafe;">${currentItems}</div>
+                <small>${orderCount} order(s)</small>
+                <div style="margin-top:8px; font-size:12px; color:#86efac;">Owed: ₦${outstanding.toLocaleString()}</div>
+                <div style="margin-top:4px; font-size:12px; color:#dbeafe;">${currentItems}</div>
             </div>
         `;
 

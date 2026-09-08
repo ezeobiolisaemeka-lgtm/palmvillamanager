@@ -11,16 +11,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#facc15">
-    <link rel="icon" href="/logo-192.svg" sizes="192x192">
-    <link rel="apple-touch-icon" href="/logo-512.svg">
+    <link rel="icon" href="./logo-192.svg" sizes="192x192">
+    <link rel="apple-touch-icon" href="./logo-512.svg">
 </head>
 
 <body>
     <div class="container">
         <div class="header">
-            <img src="logo.png" alt="Palm Villa Logo" class="logo">
+            <img src="./logo-192.svg" alt="Palm Villa Logo" class="logo">
             <h1>🌴 Palm Villa POS</h1>
             <p>Restaurant • Bar • Lounge</p>
         </div>
@@ -62,54 +62,61 @@
         </div>
 
         <h2>🍽 Palm Villa Menu</h2>
-        <div class="menu">
-            <div class="item">
-                <h3>🥩 Isi Ewu</h3>
-                <p>₦9,000</p>
-                <button onclick="addToCart('Isi Ewu', 9000)">ADD</button>
-            </div>
 
-            <div class="item">
-                <h3>🍖 Nkwobi</h3>
-                <p>₦3,000</p>
-                <button onclick="addToCart('Nkwobi', 3000)">ADD</button>
+        <div class="menu-section">
+            <h3>Meals</h3>
+            <div class="menu">
+                <div class="item"><h3>🥩 Isi Ewu</h3><p>₦9,000</p><button onclick="addToCart('Isi Ewu', 9000)">ADD</button></div>
+                <div class="item"><h3>🍖 Nkwobi</h3><p>₦3,000</p><button onclick="addToCart('Nkwobi', 3000)">ADD</button></div>
+                <div class="item"><h3>🥣 Pepper Soup</h3><p>₦4,000</p><button onclick="addToCart('Pepper Soup', 4000)">ADD</button></div>
+                <div class="item"><h3>🐟 Catfish Peppersoup</h3><p>₦16,000</p><button onclick="addToCart('Catfish Peppersoup', 16000)">ADD</button></div>
+                <div class="item"><h3>🥗 Ugba</h3><p>₦3,000</p><button onclick="addToCart('Ugba', 3000)">ADD</button></div>
+                <div class="item"><h3>🍲 Assorted Pomo</h3><p>₦200</p><button onclick="addToCart('Assorted Pomo', 200)">ADD</button></div>
+                <div class="item"><h3>🍛 Abacha</h3><p>₦3,000</p><button onclick="addToCart('Abacha', 3000)">ADD</button></div>
+                <div class="item"><h3>🥥 Palm Wine</h3><p>₦2,500</p><button onclick="addToCart('Palm Wine', 2500)">ADD</button></div>
             </div>
+        </div>
 
-            <div class="item">
-                <h3>🥣 Pepper Soup</h3>
-                <p>₦2,500</p>
-                <button onclick="addToCart('Pepper Soup', 2500)">ADD</button>
+        <div class="menu-section">
+            <h3>Drinks</h3>
+            <div class="menu">
+                <div class="item"><h3>🥤 Heineken</h3><p>₦2,500</p><button onclick="addToCart('Heineken', 2500)">ADD</button></div>
+                <div class="item"><h3>🥤 Gulder</h3><p>₦1,500</p><button onclick="addToCart('Gulder', 1500)">ADD</button></div>
+                <div class="item"><h3>🥤 Trophy</h3><p>₦1,200</p><button onclick="addToCart('Trophy', 1200)">ADD</button></div>
+                <div class="item"><h3>🥤 Goldberg</h3><p>₦1,200</p><button onclick="addToCart('Goldberg', 1200)">ADD</button></div>
+                <div class="item"><h3>🥤 Star</h3><p>₦1,500</p><button onclick="addToCart('Star', 1500)">ADD</button></div>
+                <div class="item"><h3>🥤 Guinness</h3><p>₦2,800</p><button onclick="addToCart('Guinness', 2800)">ADD</button></div>
+                <div class="item"><h3>🥤 33</h3><p>₦1,200</p><button onclick="addToCart('33', 1200)">ADD</button></div>
+                <div class="item"><h3>🥤 Small Stout</h3><p>₦1,200</p><button onclick="addToCart('Small Stout', 1200)">ADD</button></div>
+                <div class="item"><h3>🥤 Big Stout</h3><p>₦2,000</p><button onclick="addToCart('Big Stout', 2000)">ADD</button></div>
+                <div class="item"><h3>🥤 Smire Off Ice</h3><p>₦1,200</p><button onclick="addToCart('Smire Off Ice', 1200)">ADD</button></div>
+                <div class="item"><h3>🥤 Red Bull</h3><p>₦2,000</p><button onclick="addToCart('Red Bull', 2000)">ADD</button></div>
+                <div class="item"><h3>🥤 Maltina</h3><p>₦1,000</p><button onclick="addToCart('Maltina', 1000)">ADD</button></div>
+                <div class="item"><h3>🥤 Amstel Malta</h3><p>₦1,200</p><button onclick="addToCart('Amstel Malta', 1200)">ADD</button></div>
+                <div class="item"><h3>🥤 Bigi Apple</h3><p>₦800</p><button onclick="addToCart('Bigi Apple', 800)">ADD</button></div>
+                <div class="item"><h3>🥤 Bigi Orange</h3><p>₦800</p><button onclick="addToCart('Bigi Orange', 800)">ADD</button></div>
+                <div class="item"><h3>🥃 Gordon's</h3><p>₦10,000</p><button onclick="addToCart('Gordon\'s', 10000)">ADD</button></div>
+                <div class="item"><h3>🥃 Best Whiskey</h3><p>₦2,500</p><button onclick="addToCart('Best Whiskey', 2500)">ADD</button></div>
+                <div class="item"><h3>🥃 Longrider</h3><p>₦1,600</p><button onclick="addToCart('Longrider', 1600)">ADD</button></div>
+                <div class="item"><h3>🥃 Legend</h3><p>₦1,500</p><button onclick="addToCart('Legend', 1500)">ADD</button></div>
+                <div class="item"><h3>🥃 Eagle</h3><p>₦1,200</p><button onclick="addToCart('Eagle', 1200)">ADD</button></div>
             </div>
+        </div>
 
-            <div class="item">
-                <h3>🐟 Catfish Peppersoup</h3>
-                <p>₦16,000</p>
-                <button onclick="addToCart('Catfish Peppersoup', 16000)">ADD</button>
+        <div class="menu-section">
+            <h3>Water</h3>
+            <div class="menu">
+                <div class="item"><h3>💧 Table Water</h3><p>₦300</p><button onclick="addToCart('Table Water', 300)">ADD</button></div>
             </div>
+        </div>
 
-            <div class="item">
-                <h3>🥗 Ugba</h3>
-                <p>₦3,000</p>
-                <button onclick="addToCart('Ugba', 3000)">ADD</button>
-            </div>
-
-            <div class="item">
-                <h3>🍲 Assorted Pomo</h3>
-                <p>₦200</p>
-                <button onclick="addToCart('Assorted Pomo', 200)">ADD</button>
-                
-            </div>
-
-            <div class="item">
-                <h3>🍛 Abacha</h3>
-                <p>₦3,000</p>
-                <button onclick="addToCart('Abacha', 3000)">ADD</button>
-            </div>
-
-            <div class="item">
-                <h3>🥥 Palm Wine</h3>
-                <p>₦2,500</p>
-                <button onclick="addToCart('Palm Wine', 2500)">ADD</button>
+        <div class="menu-section">
+            <h3>Soft Drinks</h3>
+            <div class="menu">
+                <div class="item"><h3>🥤 Coke</h3><p>₦800</p><button onclick="addToCart('Coke', 800)">ADD</button></div>
+                <div class="item"><h3>🥤 Fanta</h3><p>₦800</p><button onclick="addToCart('Fanta', 800)">ADD</button></div>
+                <div class="item"><h3>🥤 Sprite</h3><p>₦800</p><button onclick="addToCart('Sprite', 800)">ADD</button></div>
+                <div class="item"><h3>🥤 Pepsi</h3><p>₦800</p><button onclick="addToCart('Pepsi', 800)">ADD</button></div>
             </div>
         </div>
 
@@ -152,6 +159,7 @@
             <button onclick="addExpense()">➖ Add Expense</button>
             <button onclick="viewReport()">📊 View Report</button>
             <button onclick="openWorkerOrders()">📋 Staff Summary</button>
+            <a href="./debts.html" class="button-link">💳 Outstanding Accounts</a>
             <button onclick="resetToday()">🔄 Reset Today</button>
         </div>
 
@@ -257,7 +265,7 @@
     <script src="script.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
+            navigator.serviceWorker.register('./sw.js')
             .then(() => console.log('ServiceWorker registered'))
             .catch(err => console.warn('SW register failed', err));
         }

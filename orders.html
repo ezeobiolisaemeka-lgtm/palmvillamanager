@@ -8,10 +8,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#facc15">
-    <link rel="icon" href="/logo-192.svg" sizes="192x192">
-    <link rel="apple-touch-icon" href="/logo-512.svg">
+    <link rel="icon" href="./logo-192.svg" sizes="192x192">
+    <link rel="apple-touch-icon" href="./logo-512.svg">
     <style>
         body {
             margin: 0;
@@ -348,6 +348,7 @@
             <h1 id="pageTitle">📋 Staff Order Sheet</h1>
             <div class="topbar-actions">
                 <a id="orderEntryLink" class="secondary-btn" href="orders.html">Order Entry</a>
+                <a class="secondary-btn" href="debts.html">Outstanding Accounts</a>
                 <a class="back-btn" href="index.html?manager=1">Manager POS</a>
             </div>
         </div>
@@ -408,14 +409,21 @@
         <div class="menu-section">
             <h3>Drinks</h3>
             <div class="menu-category">
-                <div class="item"><h3>� Gulder</h3><p>₦1,500</p><button onclick="addToCart('Gulder', 1500)">ADD</button></div>
+                <div class="item"><h3>🥤 Heineken</h3><p>₦2,500</p><button onclick="addToCart('Heineken', 2500)">ADD</button></div>
+                <div class="item"><h3>🥤 Gulder</h3><p>₦1,500</p><button onclick="addToCart('Gulder', 1500)">ADD</button></div>
                 <div class="item"><h3>🥤 Trophy</h3><p>₦1,200</p><button onclick="addToCart('Trophy', 1200)">ADD</button></div>
                 <div class="item"><h3>🥤 Goldberg</h3><p>₦1,200</p><button onclick="addToCart('Goldberg', 1200)">ADD</button></div>
                 <div class="item"><h3>🥤 Star</h3><p>₦1,500</p><button onclick="addToCart('Star', 1500)">ADD</button></div>
+                <div class="item"><h3>🥤 Guinness</h3><p>₦2,800</p><button onclick="addToCart('Guinness', 2800)">ADD</button></div>
                 <div class="item"><h3>🥤 33</h3><p>₦1,200</p><button onclick="addToCart('33', 1200)">ADD</button></div>
                 <div class="item"><h3>🥤 Small Stout</h3><p>₦1,200</p><button onclick="addToCart('Small Stout', 1200)">ADD</button></div>
                 <div class="item"><h3>🥤 Big Stout</h3><p>₦2,000</p><button onclick="addToCart('Big Stout', 2000)">ADD</button></div>
                 <div class="item"><h3>🥤 Smire Off Ice</h3><p>₦1,200</p><button onclick="addToCart('Smire Off Ice', 1200)">ADD</button></div>
+                <div class="item"><h3>🥤 Red Bull</h3><p>₦2,000</p><button onclick="addToCart('Red Bull', 2000)">ADD</button></div>
+                <div class="item"><h3>🥤 Maltina</h3><p>₦1,000</p><button onclick="addToCart('Maltina', 1000)">ADD</button></div>
+                <div class="item"><h3>🥤 Amstel Malta</h3><p>₦1,200</p><button onclick="addToCart('Amstel Malta', 1200)">ADD</button></div>
+                <div class="item"><h3>🥤 Bigi Apple</h3><p>₦800</p><button onclick="addToCart('Bigi Apple', 800)">ADD</button></div>
+                <div class="item"><h3>🥤 Bigi Orange</h3><p>₦800</p><button onclick="addToCart('Bigi Orange', 800)">ADD</button></div>
                 <div class="item"><h3>🥃 Gordon's</h3><p>₦10,000</p><button onclick="addToCart('Gordon\'s', 10000)">ADD</button></div>
                 <div class="item"><h3>🥃 Best Whiskey</h3><p>₦2,500</p><button onclick="addToCart('Best Whiskey', 2500)">ADD</button></div>
                 <div class="item"><h3>🥃 Longrider</h3><p>₦1,600</p><button onclick="addToCart('Longrider', 1600)">ADD</button></div>
@@ -427,9 +435,7 @@
         <div class="menu-section">
             <h3>Water</h3>
             <div class="menu-category">
-                <div class="item"><h3>💧 Table Water</h3><p>₦500</p><button onclick="addToCart('Table Water', 500)">ADD</button></div>
-                <div class="item"><h3>💧 Small Water</h3><p>₦700</p><button onclick="addToCart('Small Water', 700)">ADD</button></div>
-                <div class="item"><h3>💧 Bottle Water</h3><p>₦1,000</p><button onclick="addToCart('Bottle Water', 1000)">ADD</button></div>
+                <div class="item"><h3>💧 Table Water</h3><p>₦300</p><button onclick="addToCart('Table Water', 300)">ADD</button></div>
             </div>
         </div>
 
@@ -463,7 +469,7 @@
     <script src="script.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
+            navigator.serviceWorker.register('./sw.js')
             .then(() => console.log('ServiceWorker registered'))
             .catch(err => console.warn('SW register failed', err));
         }

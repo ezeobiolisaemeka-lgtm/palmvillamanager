@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palm Villa Outstanding Accounts</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(180deg, #071026 0%, #0b1220 100%);
+            color: #f8fafc;
+        }
+        .container {
+            width: min(1100px, 92%);
+            margin: 40px auto 80px;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 18px;
+            margin: 20px 0;
+        }
+        .summary-box {
+            background: linear-gradient(180deg, rgba(30,41,59,0.95), rgba(15,23,42,0.98));
+            border: 1px solid rgba(250,204,21,0.12);
+            border-radius: 18px;
+            padding: 22px 18px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+        }
+        .summary-box span {
+            display: block;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+        }
+        .summary-box strong {
+            font-size: 1.75rem;
+            color: #facc15;
+        }
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin: 18px 0 8px;
+        }
+        .filters input,
+        .filters select,
+        .filters button {
+            min-height: 44px;
+        }
+        .filters input,
+        .filters select {
+            flex: 1 1 200px;
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(148,163,184,0.2);
+            background: #0f172a;
+            color: #f8fafc;
+            box-sizing: border-box;
+        }
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .ledger-item {
+            background: linear-gradient(180deg, rgba(30,41,59,0.95), rgba(15,23,42,0.98));
+            border: 1px solid rgba(148,163,184,0.2);
+            border-radius: 18px;
+            padding: 20px;
+            margin-top: 18px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+        }
+        .ledger-item h3 {
+            margin: 0 0 10px;
+            color: #facc15;
+        }
+        .ledger-meta {
+            color: #cbd5e1;
+            margin-bottom: 12px;
+        }
+        .ledger-orders {
+            margin: 14px 0;
+            padding-left: 18px;
+            color: #f8fafc;
+        }
+        .ledger-orders li {
+            margin: 8px 0;
+        }
+        .payment-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .outstanding-amount {
+            color: #fca5a5;
+            font-weight: 800;
+            margin-top: 12px;
+        }
+        .paid-amount {
+            color: #86efac;
+            font-weight: 800;
+        }
+        @media (max-width: 720px) {
+            .container { width: min(96%, 100%); margin-top: 24px; }
+            .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .summary-box strong { font-size: 1.3rem; }
+            .payment-row { flex-direction: column; align-items: stretch; }
+            .payment-row button, .payment-row a { width: 100%; }
+            .filters { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💳 Outstanding Accounts</h1>
+            <p>Track what each customer still owes and what was bought.</p>
+        </div>
+
+        <div class="card">
+            <div class="summary-grid">
+                <div class="summary-box">
+                    <span>Total Outstanding</span>
+                    <strong id="totalDebt">₦0</strong>
+                </div>
+                <div class="summary-box">
+                    <span>Cash Collected Today</span>
+                    <strong id="cashToday">₦0</strong>
+                </div>
+                <div class="summary-box">
+                    <span>Total Credit Sales</span>
+                    <strong id="creditSales">₦0</strong>
+                </div>
+                <div class="summary-box">
+                    <span>Debtors</span>
+                    <strong id="debtorCount">0</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="filters">
+                <input id="customerSearch" type="text" placeholder="Search customer or table..." />
+                <select id="statusFilter">
+                    <option value="all">All customers</option>
+                    <option value="owing">Outstanding only</option>
+                    <option value="paid">Fully settled</option>
+                </select>
+                <button type="button" onclick="window.print()">🖨 Print Ledger</button>
+                <button type="button" id="exportLedgerBtn">📥 Export CSV</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div id="debtsList"></div>
+        </div>
+
+        <div class="buttons">
+            <a href="./index.html?manager=1" class="button-link">🏠 Back to Manager POS</a>
+            <a href="./orders.html?summary=1" class="button-link">📋 Staff Summary</a>
+        </div>
+    </div>
+
+    <script src="./script.js"></script>
+    <script>
+        function formatMoney(value) {
+            return '₦' + Number(value || 0).toLocaleString();
+        }
+
+        function sameDay(dateValue) {
+            if (!dateValue) return false;
+            const value = new Date(dateValue);
+            if (Number.isNaN(value.getTime())) return false;
+            const today = new Date();
+            return value.getFullYear() === today.getFullYear()
+                && value.getMonth() === today.getMonth()
+                && value.getDate() === today.getDate();
+        }
+
+        function getCustomers() {
+            const customers = JSON.parse(localStorage.getItem('palmVillaCustomers')) || [];
+            return customers.map((customer) => normalizeCustomerRecord(customer));
+        }
+
+        function exportLedgerCsv() {
+            const customers = getCustomers();
+            const rows = [
+                ['Customer', 'Table', 'Orders', 'Total Spent', 'Paid', 'Owed', 'Items']
+            ];
+
+            customers.forEach((customer) => {
+                const totalSpent = (customer.orders || []).reduce((sum, order) => sum + Number(order.total || 0), 0);
+                const itemSummary = (customer.orders || []).flatMap((order) => (order.items || [])).map((item) => `${item.name} x${item.qty}`).join(' | ');
+                rows.push([
+                    customer.name,
+                    customer.table,
+                    (customer.orders || []).length,
+                    totalSpent,
+                    Number(customer.paid || 0),
+                    Number(customer.owed || 0),
+                    itemSummary || 'No items'
+                ]);
+            });
+
+            const csv = rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const anchor = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            anchor.href = url;
+            anchor.download = 'palm-villa-ledger.csv';
+            anchor.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function renderDebtList() {
+            const customers = getCustomers();
+            const debtList = document.getElementById('debtsList');
+            const searchInput = document.getElementById('customerSearch');
+            const filterValue = document.getElementById('statusFilter').value;
+            const searchValue = (searchInput?.value || '').trim().toLowerCase();
+
+            const filtered = customers
+                .map((customer, index) => ({ customer, index }))
+                .filter(({ customer }) => {
+                    const combined = `${customer.name || ''} ${customer.table || ''}`.toLowerCase();
+                    const matchesSearch = !searchValue || combined.includes(searchValue);
+                    const debt = Number(customer.owed || 0);
+                    const statusMatch = filterValue === 'all'
+                        || (filterValue === 'owing' && debt > 0)
+                        || (filterValue === 'paid' && debt === 0 && (customer.orders || []).length > 0);
+                    return matchesSearch && statusMatch;
+                });
+
+            const totalDebt = filtered.reduce((sum, { customer }) => sum + Number(customer.owed || 0), 0);
+            const totalCashToday = customers.reduce((sum, customer) => {
+                const dailyPayments = (customer.payments || []).filter((payment) => sameDay(payment.time));
+                return sum + dailyPayments.reduce((paymentTotal, payment) => paymentTotal + Number(payment.amount || 0), 0);
+            }, 0);
+            const totalCreditSales = customers.reduce((sum, customer) => {
+                return sum + (customer.orders || []).reduce((orderTotal, order) => orderTotal + Number(order.total || 0), 0);
+            }, 0);
+
+            document.getElementById('totalDebt').textContent = formatMoney(totalDebt);
+            document.getElementById('cashToday').textContent = formatMoney(totalCashToday);
+            document.getElementById('creditSales').textContent = formatMoney(totalCreditSales);
+            document.getElementById('debtorCount').textContent = filtered.length.toString();
+
+            if (!filtered.length) {
+                debtList.innerHTML = '<div class="empty">No matching customer found.</div>';
+                return;
+            }
+
+            debtList.innerHTML = filtered.map(({ customer, index }) => {
+                const orderItems = (customer.orders || []).flatMap((order) => (order.items || []).map((item) => `${item.name} x${item.qty}`));
+                const lastOrders = (customer.orders || []).map((order) => {
+                    const itemsHtml = (order.items || []).map((item) => `<li>${item.name} x${item.qty} — ${formatMoney(Number(item.price) * Number(item.qty))}</li>`).join('');
+                    return `
+                        <div style="margin-top:12px;">
+                            <strong>${order.date || order.time || 'Order'}</strong>
+                            <ul class="ledger-orders">${itemsHtml || '<li>No items</li>'}</ul>
+                            <div><strong>Order Total:</strong> ${formatMoney(order.total || 0)} | <strong>Paid:</strong> ${formatMoney(order.paid || 0)} | <strong>Owed:</strong> ${formatMoney(order.owed || 0)}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                const paymentHistory = (customer.payments || []).map((payment) => `<li>${payment.time} — ${formatMoney(payment.amount || 0)}</li>`).join('') || '<li>No payments recorded</li>';
+                const customerDebt = Number(customer.owed || 0);
+
+                return `
+                    <div class="ledger-item">
+                        <h3>${customer.name}</h3>
+                        <div class="ledger-meta">Table: ${customer.table} | Orders: ${(customer.orders || []).length} | Item record: ${orderItems.length ? orderItems.join(', ') : 'No items recorded'}</div>
+                        ${lastOrders}
+                        <div class="payment-row">
+                            <strong>Payment history:</strong>
+                        </div>
+                        <ul class="ledger-orders">${paymentHistory}</ul>
+                        <div class="${customerDebt > 0 ? 'outstanding-amount' : 'paid-amount'}">Outstanding Balance: ${formatMoney(customerDebt)}</div>
+                        <div class="payment-row">
+                            <button type="button" onclick="const amount = Number(prompt('How much did this customer pay now?', '0') || 0); if (amount >= 0) { recordCustomerPayment(${index}, amount); renderDebtList(); }">✅ Record Payment</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        document.getElementById('customerSearch').addEventListener('input', renderDebtList);
+        document.getElementById('statusFilter').addEventListener('change', renderDebtList);
+        document.getElementById('exportLedgerBtn').addEventListener('click', exportLedgerCsv);
+        renderDebtList();
+    </script>
+</body>
+</html>

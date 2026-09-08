@@ -1,12 +1,13 @@
-const CACHE_NAME = 'palmvilla-cache-v1';
+const CACHE_NAME = 'palmvilla-cache-v3';
 const FILES_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/orders.html',
-  '/script.js',
-  '/style.css',
-  '/manifest.json',
-  '/logo.png'
+  './',
+  './index.html',
+  './orders.html',
+  './script.js',
+  './style.css',
+  './manifest.json',
+  './logo-192.svg',
+  './logo-512.svg'
 ];
 
 self.addEventListener('install', (evt) => {
@@ -46,7 +47,7 @@ self.addEventListener('fetch', (evt) => {
           }
           return res;
         });
-      }).catch(() => caches.match('/orders.html'));
+      }).catch(() => caches.match('./orders.html'));
     })
   );
 });

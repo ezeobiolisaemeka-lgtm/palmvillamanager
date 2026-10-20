@@ -1,89 +1,35 @@
-# Palm Villa POS — Deployment Guide
+# Production deployment notes
 
-This repository contains a static site (HTML/CSS/JS) suitable for static hosting.
+## Recommended setup: Render + GitHub
 
-Quick options to host it publicly:
+The repository now includes `render.yaml` to define a Node web service, HTTPS health check, SQLite location, and persistent disk. Render's persistent disk requires a paid web service; the free service filesystem is temporary and would lose the POS database after a restart or deploy. GitHub Pages is static and cannot run this backend.
 
-1) Netlify — easiest (drag & drop)
-- Create a free account at https://app.netlify.com/
-- In the Netlify dashboard, use "Sites > New site from Git" to connect your GitHub repository, or use the drag-and-drop deploy: open the site, go to "Sites", then drag the contents of this folder (the built site) into the browser to deploy.
+1. Push the reviewed project to the existing GitHub repository's `main` branch. GitHub Actions runs the Node checks before Render deploys.
+2. Sign in to Render, choose **New > Blueprint**, connect `ezeobiolisaemeka-lgtm/palmvillamanager`, and select `main` and `render.yaml`.
+3. During setup, enter a manager username (at least 3 characters) and a strong unique manager password (at least 12 characters). Render generates the session secret. Keep all secrets in Render's private environment settings.
+4. Create the service with the persistent disk in the Blueprint. Wait for the health check to pass, then open the Render service URL and sign in. Change the manager password if desired, and remove `MANAGER_PASSWORD` from the service settings after the first manager account has been created.
+5. Before changing the old site's address, export the old browser data using its `/migration.html` page. Sign in to the new server and import that JSON at `/migration.html`. Verify menu prices, customers, debt balances, payments, sales, and reports.
+6. If you own a domain, add it in the Render service's **Settings > Custom Domains**, then copy the DNS records Render shows into your domain registrar. Wait for DNS and HTTPS activation before giving staff the new address.
 
-Netlify CLI (for terminal deploy):
-```bash
-npm install -g netlify-cli
-# login once interactively
-netlify login
-# deploy the current folder as a draft
-netlify deploy --dir=. 
-# when you're ready to publish to a production URL
-netlify deploy --prod --dir=.
-```
+Render documents that persistent disks preserve only files under their mount path and are available on paid web services. Keep the SQLite database and backup directory on that disk, and separately copy backups offsite. [Persistent disk guide](https://render.com/docs/disks), [Blueprint reference](https://render.com/docs/blueprint-spec).
 
-2) GitHub Pages (via `gh-pages` branch)
-- Create a GitHub repository and push this project.
-- From your local repo:
-```bash
-git init
-git add .
-git commit -m "Initial site"
-git branch -M main
-# create repo on GitHub, then push
-git remote add origin https://github.com/<yourname>/<repo>.git
-git push -u origin main
-# optional: publish via gh-pages branch using npm package
-npm install -g gh-pages
-# deploy build (here site is already static at repository root)
-gh-pages -d .
-```
-- Or use GitHub Actions to publish `main` to GitHub Pages (see example below).
+GitHub Pages only publishes static files and cannot run the POS backend. [GitHub Pages documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site).
 
-3) Vercel
-- `npm i -g vercel` then `vercel` and follow prompts. Vercel will detect static site and deploy.
+## Other Node hosts
 
-4) VPS / DigitalOcean / Linode
-- Copy files to your server, e.g. using `rsync`:
-```bash
-rsync -av --delete ./ username@your.server.ip:/var/www/palmvilla
-# ensure nginx/apache serves that folder
-```
+Any host can run this app if it supports Node.js 22.13 or newer and a persistent writable volume. Set `npm start` as the start command and configure the variables below. Set `DATABASE_PATH` and `BACKUP_PATH` within the host's persistent volume.
 
-5) Temporary public tunnel (for testing from phone over mobile data)
-- Use `ngrok` (install from https://ngrok.com/):
-```bash
-ngrok http 8000
-# you'll get a public https://... URL you can open on phone
-```
+Set these private environment variables in the host dashboard:
 
-GitHub Actions example (publish `main` to `gh-pages` branch):
+- `NODE_ENV=production`
+- `SESSION_SECRET` (random, at least 32 characters; keep it stable)
+- `MANAGER_USERNAME` and `MANAGER_PASSWORD` for the first startup only
+- `DATABASE_PATH` on persistent storage
+- `BACKUP_PATH` on persistent storage; copy backups offsite on a schedule
+- `BUSINESS_TIME_ZONE=Africa/Lagos`
 
-```yaml
-# .github/workflows/gh-pages.yml
-name: Deploy to GitHub Pages
-on:
-  push:
-    branches: [ main ]
+The first startup creates the manager account if it does not already exist. The server stores password hashes, never the original password. Change the manager password after the first sign-in, then remove `MANAGER_PASSWORD` from the host configuration. Keep `SESSION_SECRET` configured.
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./
-```
+Use the host's HTTPS endpoint or terminate TLS at a trusted reverse proxy. Confirm its persistent disk survives deploys and restarts. Before directing a custom domain to the new server, export old browser data from `/migration.html`; import it after signing in to the new server as manager. Check `/api/health` after deployment, then sign in from one staff device and the manager device to confirm both connect to the same records.
 
-Notes & recommendations
-- Use Netlify or Vercel for the fastest setup (no server management).
-- Use HTTPS — Netlify/Vercel/GitHub Pages provide it automatically.
-- If you want me to prepare a Git repo or add a GitHub Actions workflow, I can add the files here; you'll still need to create the remote GitHub repo and provide the remote URL to push.
-
-Commands you might run locally to prepare and test:
-```bash
-# start local server
-python3 -m http.server 8000 --bind 0.0.0.0
-# create a zip for manual upload
-zip -r palmvilla.zip . -x '*.git*' -x 'node_modules/*'
-```
+Never deploy the repository root as a static site for live use. The app requires `server.js`, and the SQLite database must remain outside Git and backed up to separate storage.

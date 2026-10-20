@@ -1,0 +1,23 @@
+name: Node server checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --check server.js
+      - run: node --check script.js
+      - run: node --check api.js
+      - run: node --check debts.js
+      - run: npm test

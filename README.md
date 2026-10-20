@@ -1,45 +1,44 @@
 # Palm Villa POS
 
-A lightweight, installable Progressive Web App (PWA) for Palm Villa — staff order entry (`orders.html`) and manager dashboard (`index.html`). Built with vanilla HTML, CSS and JavaScript and persisting data in `localStorage`.
-
-## Features
-- Staff order entry optimized for mobile
-- Per-customer carts and order history
-- Manager dashboard with staff activity and sales history
-- PWA support (manifest + service worker) and app icons
-- Simple static site — ready to host on GitHub Pages, Netlify, or Vercel
+Palm Villa is a staff ordering app and manager dashboard served by a Node.js application. SQLite stores shared orders, prices, sales, expenses, inventory, accounts, and audit events. Staff and managers sign in separately; the server enforces permissions and calculates sale totals from its menu database.
 
 ## Run locally
-Start a quick local server for testing:
+
+Requires Node.js 22.13 or newer. Copy `.env.example` to `.env`, set a unique manager username and password (at least 12 characters), and replace `SESSION_SECRET` with a random value of at least 32 characters. Keep `.env` private and keep `SESSION_SECRET` unchanged between restarts.
 
 ```bash
-python3 -m http.server 8000 --bind 0.0.0.0
-# then open http://localhost:8000/orders.html or http://<your-ip>:8000/orders.html
+npm start
 ```
 
-## Prepare GitHub repository and push
-1. Create a new repository on GitHub (e.g. `palmvillamanager`).
-2. From your project folder, run:
+Open `http://localhost:3000`. The initial manager account is created once from the environment settings. After signing in, use **Add Staff Account** to create staff logins. Change the initial password from the dashboard.
+
+Run the automated backend checks with:
 
 ```bash
-git init
-git add .
-git commit -m "Initial Palm Villa POS"
-# create remote repo on GitHub and paste the URL below
-git remote add origin https://github.com/<yourname>/palmvillamanager.git
-git branch -M main
-git push -u origin main
+npm test
 ```
 
-This repository already includes a GitHub Actions workflow that will build/publish the `main` branch to the `gh-pages` branch and serve the site via GitHub Pages.
+## Data, backups, and migration
 
-## GitHub Pages deployment (already configured)
-A workflow file `.github/workflows/gh-pages.yml` is included — when you push to `main` the workflow will publish the repository root to `gh-pages` using `peaceiris/actions-gh-pages`. After the workflow finishes, enable GitHub Pages in the repository settings (branch: `gh-pages`, folder: `/`) if not automatically configured.
+SQLite files and daily backups default to sibling folders outside this repository (`../palmvilla-data` and `../palmvilla-backups`). Set `DATABASE_PATH` and `BACKUP_PATH` to persistent writable storage on the production server. The server creates one SQLite snapshot per business day and keeps the latest 30 days. Copy backups to separate offsite storage regularly; a backup on the same server cannot recover from server or disk loss.
 
-## If you prefer Netlify or Vercel
-See `README_DEPLOY.md` for one-line commands and CLI deploy scripts.
+To move records from the older browser-only version, open `/migration.html` on the old site and download its export before changing the site address. After the Node server is online, sign in as manager, open `/migration.html`, and import that file. The import is one-time per business date; keep the downloaded file as a private backup.
 
-## Notes for hosting
-- Keep `palmVillaData` and `palmVillaCustomers` in `localStorage` — migrating to a server DB is a future improvement.
-- If you want me to push to GitHub for you, provide the remote repo URL or let me create a repo (requires your permission/access).
+## Hosting
 
+GitHub is the source-code repository. GitHub Pages and a custom domain name alone cannot run this API or persist its SQLite database. The included `render.yaml` provides a Render setup with a persistent disk; follow [README_DEPLOY.md](README_DEPLOY.md) to connect GitHub, create the manager login, import old browser data, and optionally point your own domain at the service. A persistent disk requires a paid Render service. Never upload `.env`, database files, or backup files to GitHub.
+
+For production, set `NODE_ENV=production` behind HTTPS so session cookies are marked secure. Keep the server database and backups on persistent storage; schedule an additional offsite copy.
+
+## Project files
+
+- `server.js`: authenticated API, database, static file server, daily backups.
+- `index.html`: manager dashboard; `orders.html`: staff orders and summary; `debts.html`: manager debt ledger.
+- `script.js`, `api.js`, `login.js`: browser interface and same-origin API client.
+- `migration.html`, `migration.js`: export old browser records and import them on the secure server.
+- `style.css`, `manifest.json`, `sw.js`, `logo-*.svg`: styling and PWA assets.
+- `test/server.test.js`: API, permissions, price, sales, and backup checks.
+
+## Configuration and security
+
+Do not use `python3 -m http.server` or a static-only host for the live POS. The Node server protects dashboard routes and business APIs. Use individual staff accounts, choose strong unique passwords, use HTTPS in production, retain offsite backups, and never commit credentials or customer exports.

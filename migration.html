@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#4c3323">
+  <title>Move Palm Villa data</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="logo-192.svg" sizes="192x192">
+</head>
+<body>
+  <main class="login-page">
+    <section class="login-card migration-card">
+      <img src="logo-192.svg" alt="" width="64" height="64">
+      <p class="eyebrow">PALM VILLA POS</p>
+      <h1>Move browser data</h1>
+      <p>Export old browser records before changing the site address. The file stays on this device until you download it.</p>
+      <button id="exportLegacy" type="button">Download this browser's data</button>
+      <hr>
+      <p>On the new secure server, sign in as manager, choose that export file, and import it once.</p>
+      <label for="legacyFile">Palm Villa export file</label>
+      <input id="legacyFile" type="file" accept="application/json,.json">
+      <button id="importLegacy" type="button" disabled>Import file to secure server</button>
+      <p id="migrationStatus" role="status" aria-live="polite"></p>
+      <a href="/login.html">Sign in</a>
+    </section>
+  </main>
+  <script src="api.js"></script>
+  <script src="migration.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: palm-villa-pos
+    runtime: node
+    region: singapore
+    plan: 0.5c-512mb
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeployTrigger: checksPass
+    disk:
+      name: palm-villa-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BUSINESS_TIME_ZONE
+        value: Africa/Lagos
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: MANAGER_USERNAME
+        sync: false
+      - key: MANAGER_PASSWORD
+        sync: false
+      - key: DATABASE_PATH
+        value: /var/data/palmvilla.sqlite
+      - key: BACKUP_PATH
+        value: /var/data/backups

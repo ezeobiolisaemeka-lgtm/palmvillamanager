@@ -1,5 +1,12 @@
 /node_modules/
 /.env
+/.env.*
+!/.env.example
+/data/
+/backups/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
 .DS_Store
 *.zip
 *.log
@@ -13,3 +20,9 @@ package-lock.json
 
 # Local python server file
 /tmp/palmvilla_http.log
+
+# Local tunnel and QR testing artifacts
+current_tunnel_url.txt
+ngrok
+ngrok.zip
+ngrok-download.html

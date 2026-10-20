@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#4c3323">
+  <title>Sign in · Palm Villa</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="logo-192.svg" sizes="192x192">
+</head>
+<body>
+  <main class="login-page">
+    <section class="login-card" aria-labelledby="loginTitle">
+      <img src="logo-192.svg" alt="" width="64" height="64">
+      <p class="eyebrow">PALM VILLA POS</p>
+      <h1 id="loginTitle">Staff sign in</h1>
+      <p>Use the account provided by your manager.</p>
+      <form id="loginForm">
+        <label for="username">Username</label>
+        <input id="username" name="username" autocomplete="username" required>
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <button type="submit">Sign in</button>
+        <p id="loginError" role="alert" aria-live="polite"></p>
+      </form>
+    </section>
+  </main>
+  <script src="login.js" defer></script>
+</body>
+</html>

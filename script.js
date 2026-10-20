@@ -1,29 +1,39 @@
 let cart = [];
-let customers = JSON.parse(localStorage.getItem("palmVillaCustomers")) || [];
+let customers = [];
 let currentCustomer = null;
 let sales = 0;
 let expenses = 0;
 let salesHistory = [];
 let staffHistory = [];
 
-const today = new Date().toISOString().split("T")[0];
-
-function saveCustomers() {
-    localStorage.setItem("palmVillaCustomers", JSON.stringify(customers));
+function getLocalDateKey(date = new Date()) {
+    return new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Africa/Lagos", year: "numeric", month: "2-digit", day: "2-digit"
+    }).format(date);
 }
 
-function normalizeCustomerRecord(customer) {
-    if (!customer || typeof customer !== 'object') return customer;
+let currentBusinessDate = getLocalDateKey();
 
-    customer.name = customer.name || "Unnamed Customer";
-    customer.table = customer.table || "Walk-in";
-    customer.cart = Array.isArray(customer.cart) ? customer.cart : [];
-    customer.orders = Array.isArray(customer.orders) ? customer.orders : [];
-    customer.owed = Number(customer.owed || 0);
-    customer.paid = Number(customer.paid || 0);
-    customer.payments = Array.isArray(customer.payments) ? customer.payments : [];
+function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[character]);
+}
 
-    return customer;
+function saveCustomers() {
+    const customer = getSelectedCustomer();
+    if (!customer || !customer.id) return Promise.resolve();
+    return PalmVillaApi.updateCart(customer.id, customer.cart || [], customer.version).then((result) => {
+        customer.version = result.version;
+    }).catch((error) => {
+        console.error("Cart save failed:", error);
+        alert(`Your cart could not be saved: ${error.message}`);
+        throw error;
+    });
 }
 
 function getSelectedCustomer() {
@@ -46,65 +56,286 @@ function syncCartWithCustomer() {
     displayCart();
 }
 
+function rollOverBusinessDayIfNeeded() {
+    const dateKey = getLocalDateKey();
+    if (dateKey === currentBusinessDate) return;
+
+    currentBusinessDate = dateKey;
+    loadData();
+}
+
+const menuPrices = {
+    // Shared source of truth: edit these naira amounts to update every menu and cart total.
+    "Isi Ewu": 9000,
+    "Nkwobi": 3000,
+    "Pepper Soup": 2500,
+    "Catfish Peppersoup": 16000,
+    "Ugba": 4000,
+    "Assorted Pomo": 200,
+    "Abacha": 6000,
+    "Panla": 1500,
+    "Palm Wine": 3000,
+    "Gulder": 1500,
+    "Desperado": 1500,
+    "Budweiser": 1500,
+    "Heineken": 1500,
+    "Trophy": 1200,
+    "Goldberg": 1300,
+    "Star": 1500,
+    "33": 1300,
+    "Small Stout": 1200,
+    "Big Stout": 2000,
+    "Smire Off Ice": 1200,
+    "Gordon's": 10000,
+    "Best Whiskey": 2500,
+    "Longrider": 1600,
+    "Legend": 1500,
+    "Eagle": 1200,
+    "Castle Lite": 1300,
+    "Table Water": 300,
+    "Coke": 700,
+    "Fanta": 700,
+    "Sprite": 700,
+    "Pepsi": 700,
+    "Malt": 1000,
+    "Fayrouz": 1000
+};
+
+function synchronizeMenuPrices() {
+    const priceSelect = document.getElementById("priceEditorItem");
+    if (priceSelect) {
+        const selected = priceSelect.value;
+        priceSelect.innerHTML = Object.keys(menuPrices).map(name =>
+            `<option value="${escapeHtml(name)}">${escapeHtml(name)} — ₦${menuPrices[name].toLocaleString()}</option>`
+        ).join("");
+        if (Object.prototype.hasOwnProperty.call(menuPrices, selected)) priceSelect.value = selected;
+    }
+    document.querySelectorAll(".item button[onclick]").forEach((button) => {
+        const handler = button.getAttribute("onclick") || "";
+        const match = handler.match(/^addToCart\('((?:\\.|[^'])*)',\s*\d+\)$/);
+        if (!match) return;
+
+        const itemName = match[1].replace(/\\'/g, "'");
+        if (!Object.prototype.hasOwnProperty.call(menuPrices, itemName)) return;
+
+        const price = menuPrices[itemName];
+        const priceElement = button.closest(".item")?.querySelector("p");
+        if (priceElement) priceElement.textContent = `₦${price.toLocaleString()}`;
+        button.onclick = () => addToCart(itemName, price);
+    });
+}
+
+async function updateMenuPrice() {
+    const itemName = document.getElementById("priceEditorItem")?.value;
+    const field = document.getElementById("priceEditorAmount");
+    const amount = Number(field?.value);
+    if (!itemName || !Number.isSafeInteger(amount) || amount < 0) {
+        alert("Choose a menu item and enter a valid whole-naira price.");
+        return;
+    }
+    try {
+        await PalmVillaApi.updatePrice(itemName, amount);
+        menuPrices[itemName] = amount;
+        synchronizeMenuPrices();
+        field.value = "";
+        alert(`${itemName} price updated to ₦${amount.toLocaleString()}.`);
+    } catch (error) {
+        alert(`Price was not saved: ${error.message}`);
+    }
+}
+
+async function createStaffAccount() {
+    const username = prompt("New staff username:");
+    if (username === null) return;
+    const password = prompt("Set a temporary password (at least 12 characters):");
+    if (password === null) return;
+    try {
+        const account = await PalmVillaApi.createUser({ username, password, role: "staff" });
+        alert(`Staff account ${account.username} is ready. Share the temporary password privately and ask them to change it after signing in.`);
+        loadStaffAccounts();
+    } catch (error) {
+        alert(`Staff account was not created: ${error.message}`);
+    }
+}
+
+async function loadStaffAccounts() {
+    const list = document.getElementById("staffAccountsList");
+    if (!list) return;
+    list.textContent = "Loading accounts…";
+    try {
+        const result = await PalmVillaApi.getUsers();
+        list.replaceChildren();
+        result.users.forEach((user) => {
+            const row = document.createElement("div");
+            row.className = "staff-account-row";
+            const details = document.createElement("div");
+            const name = document.createElement("strong");
+            name.textContent = user.username;
+            const role = document.createElement("span");
+            role.textContent = `${user.role} · ${user.active ? "Active" : "Disabled"}`;
+            details.append(name, role);
+            row.append(details);
+            if (user.role === "staff") {
+                const passwordButton = document.createElement("button");
+                passwordButton.type = "button";
+                passwordButton.textContent = "Reset password";
+                passwordButton.onclick = () => resetStaffPassword(user.id, user.username);
+                const stateButton = document.createElement("button");
+                stateButton.type = "button";
+                stateButton.textContent = user.active ? "Disable" : "Enable";
+                stateButton.onclick = () => setStaffAccountActive(user.id, user.active);
+                row.append(passwordButton, stateButton);
+            }
+            list.append(row);
+        });
+        if (!result.users.length) list.textContent = "No accounts found.";
+    } catch (error) {
+        list.textContent = `Accounts could not be loaded: ${error.message}`;
+    }
+}
+
+async function resetStaffPassword(userId, username) {
+    const password = prompt(`Set a temporary password for ${username} (at least 12 characters):`);
+    if (password === null) return;
+    try {
+        await PalmVillaApi.resetUserPassword(userId, password);
+        alert(`Password reset for ${username}. Share the new temporary password privately.`);
+    } catch (error) {
+        alert(`Password was not reset: ${error.message}`);
+    }
+}
+
+async function setStaffAccountActive(userId, isActive) {
+    const action = isActive ? "disable" : "enable";
+    if (!confirm(`Are you sure you want to ${action} this staff account?`)) return;
+    try {
+        await PalmVillaApi.setUserActive(userId, !isActive);
+        await loadStaffAccounts();
+    } catch (error) {
+        alert(`Account was not changed: ${error.message}`);
+    }
+}
+
+async function changeAccountPassword() {
+    const currentPassword = prompt("Enter your current password:");
+    if (currentPassword === null) return;
+    const newPassword = prompt("Enter a new password (at least 12 characters):");
+    if (newPassword === null) return;
+    try {
+        await PalmVillaApi.changePassword(currentPassword, newPassword);
+        alert("Password changed. Please sign in again with the new password.");
+        window.location.replace("/login.html");
+    } catch (error) {
+        alert(`Password was not changed: ${error.message}`);
+    }
+}
+
+function initializeMenuFilters() {
+    const searchInput = document.getElementById("menuSearch");
+    const filterButtons = [...document.querySelectorAll("[data-category-filter]")];
+    const sections = [...document.querySelectorAll("[data-staff-menu-section]")];
+    if (!searchInput || !sections.length) return;
+
+    let activeCategory = "all";
+    const applyFilters = () => {
+        const query = searchInput.value.trim().toLocaleLowerCase();
+        let visibleItems = 0;
+
+        sections.forEach((section) => {
+            let visibleInSection = 0;
+            const categoryMatches = activeCategory === "all" || section.dataset.category === activeCategory;
+            section.querySelectorAll(".item").forEach((item) => {
+                const matches = categoryMatches && item.textContent.toLocaleLowerCase().includes(query);
+                item.hidden = !matches;
+                if (matches) visibleInSection += 1;
+            });
+            section.hidden = visibleInSection === 0;
+            visibleItems += visibleInSection;
+        });
+
+        const emptyState = document.getElementById("menuNoResults");
+        if (emptyState) emptyState.hidden = visibleItems > 0;
+    };
+
+    searchInput.addEventListener("input", applyFilters);
+    filterButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            activeCategory = button.dataset.categoryFilter;
+            filterButtons.forEach((tab) => {
+                const selected = tab === button;
+                tab.classList.toggle("is-active", selected);
+                tab.setAttribute("aria-pressed", String(selected));
+            });
+            applyFilters();
+        });
+    });
+}
+
+function initializeManagerMenuSearch() {
+    const searchInput = document.getElementById("managerMenuSearch");
+    const menuSection = document.getElementById("menuSection");
+    if (!searchInput || !menuSection) return;
+
+    const items = [...menuSection.querySelectorAll(".item")];
+    const groups = [...menuSection.querySelectorAll(".menu-group")];
+    const emptyState = document.getElementById("managerMenuNoResults");
+
+    searchInput.addEventListener("input", () => {
+        const query = searchInput.value.trim().toLocaleLowerCase();
+        let visibleCount = 0;
+
+        items.forEach((item) => {
+            item.hidden = !item.textContent.toLocaleLowerCase().includes(query);
+            if (!item.hidden) visibleCount += 1;
+        });
+
+        groups.forEach((group) => {
+            group.hidden = !group.querySelector(".item:not([hidden])");
+        });
+
+        if (emptyState) emptyState.hidden = visibleCount > 0;
+    });
+}
+
 
 // ===============================
 // LOAD SAVED DATA
 // ===============================
 
-function loadData() {
-
-    let savedData = JSON.parse(localStorage.getItem("palmVillaData"));
-
-    if (savedData && savedData.date === today) {
-
-        sales = savedData.sales || 0;
-        expenses = savedData.expenses || 0;
-        salesHistory = savedData.salesHistory || [];
-        staffHistory = savedData.staffHistory || [];
-
-    } else {
-
-        sales = 0;
-        expenses = 0;
-        salesHistory = [];
-        staffHistory = [];
-        saveData();
+async function loadData({ quiet = false } = {}) {
+    try {
+        const state = await PalmVillaApi.getState();
+        const priorCustomerId = getSelectedCustomer()?.id;
+        currentBusinessDate = state.date;
+        const reportDate = document.getElementById("reportDate");
+        if (reportDate && !reportDate.value) reportDate.value = state.date;
+        sales = state.sales;
+        expenses = state.expenses;
+        salesHistory = state.salesHistory || [];
+        staffHistory = state.staffHistory || [];
+        customers = state.customers || [];
+        drinks = state.drinks || [];
+        Object.assign(menuPrices, state.menuPrices || {});
+        currentCustomer = priorCustomerId
+            ? customers.findIndex(customer => customer.id === priorCustomerId)
+            : null;
+        if (currentCustomer < 0) currentCustomer = null;
+        synchronizeMenuPrices();
+        displayDrinks();
+        displayCustomers();
+        updateDashboard();
+        displaySalesHistory();
+        displayStaffHistory();
+        syncCartWithCustomer();
+        if (typeof loadSummary === "function") loadSummary();
+        if (document.getElementById("staffAccountsList")) loadStaffAccounts();
+    } catch (error) {
+        console.error("Unable to load Palm Villa data:", error);
+        if (!quiet) document.body.innerHTML = `<main class="login-page"><section class="login-card"><h1>Could not load business data</h1><p>${escapeHtml(error.message)}</p><button onclick="location.reload()">Try again</button></section></main>`;
     }
-
-    customers = (JSON.parse(localStorage.getItem("palmVillaCustomers")) || []).map(normalizeCustomerRecord);
-    saveCustomers();
-    updateDashboard();
-    displaySalesHistory();
-    displayStaffHistory();
-    displayCustomers();
-    syncCartWithCustomer();
 }
 
-
-// ===============================
-// SAVE DATA
-// ===============================
-
-function saveData() {
-
-    let data = {
-
-        date: today,
-
-        sales: sales,
-
-        expenses: expenses,
-
-        salesHistory: salesHistory,
-        staffHistory: staffHistory
-
-    };
-
-    localStorage.setItem(
-        "palmVillaData",
-        JSON.stringify(data)
-    );
-}
+// Business records are authoritative in the shared, authenticated server database.
 
 
 // ===============================
@@ -112,6 +343,9 @@ function saveData() {
 // ===============================
 
 function addToCart(itemName, price, qty = 1) {
+    rollOverBusinessDayIfNeeded();
+
+    price = menuPrices[itemName] ?? price;
 
     const customer = getSelectedCustomer();
 
@@ -122,7 +356,7 @@ function addToCart(itemName, price, qty = 1) {
 
     // Special-case: Assorted Pomo allows selecting arbitrary quantity (each ₦200)
     // If a qty is not provided (or is 0), prompt staff for desired amount.
-    if (itemName === "Assorted Pomo" && (!qty || qty <= 0)) {
+    if (itemName === "Assorted Pomo" && (!qty || qty <= 1)) {
         let input = prompt("Enter number of Pomo pieces (each ₦200):", "1");
         if (!input) return;
         let parsed = parseInt(input);
@@ -146,7 +380,7 @@ function addToCart(itemName, price, qty = 1) {
     }
 
     cart = customer.cart;
-    saveCustomers();
+    saveCustomers().catch(() => {});
     displayCart();
     displayCustomers();
     if (typeof loadSummary === "function") {
@@ -173,8 +407,9 @@ function addToCart(itemName, price, qty = 1) {
             minute: '2-digit'
         })
     });
-    saveData();
     displayStaffHistory();
+    PalmVillaApi.logActivity("item-added", customer.id, cart, cart.reduce((sum, item) => sum + item.price * item.qty, 0))
+        .catch((error) => console.warn("Activity log failed:", error));
 }
 
 
@@ -209,7 +444,7 @@ function displayCart() {
 
             <div class="cart-item">
 
-                <h3>${item.name}</h3>
+                <h3>${escapeHtml(item.name)}</h3>
 
                 <button onclick="decreaseQty(${index})">
                     ➖
@@ -247,7 +482,7 @@ function increaseQty(index) {
 
     if (currentCustomer !== null && customers[currentCustomer]) {
         customers[currentCustomer].cart = cart;
-        saveCustomers();
+        saveCustomers().catch(() => {});
     }
 
     displayCart();
@@ -276,7 +511,7 @@ function decreaseQty(index) {
 
     if (currentCustomer !== null && customers[currentCustomer]) {
         customers[currentCustomer].cart = cart;
-        saveCustomers();
+        saveCustomers().catch(() => {});
     }
 
     displayCart();
@@ -291,165 +526,39 @@ function decreaseQty(index) {
 // COMPLETE SALE
 // ===============================
 
-function completeSale() {
-
-    if (cart.length === 0) {
-
-        alert("Cart is empty!");
-
+async function completeSale() {
+    rollOverBusinessDayIfNeeded();
+    const customer = getSelectedCustomer();
+    if (!customer || cart.length === 0) {
+        alert("Select a customer with items before completing a sale.");
         return;
     }
 
-    let total = 0;
-
-    cart.forEach(item => {
-
-        total += item.price * item.qty;
-
-    });
-
-    const customerName = currentCustomer !== null && customers[currentCustomer]
-        ? customers[currentCustomer].name
-        : "Walk-in";
-
-    const customerTable = currentCustomer !== null && customers[currentCustomer]
-        ? customers[currentCustomer].table
-        : "Walk-in";
-
-    const amountPaid = Number(prompt("How much did the customer pay now? Enter 0 if unpaid:", "0") || 0);
-
-    if (isNaN(amountPaid) || amountPaid < 0) {
-        alert("Please enter a valid payment amount.");
-        return;
-    }
-
-    const amountOwed = Math.max(total - amountPaid, 0);
-
-    // Add to total sales
-
-    sales += total;
-
-    // Save every item
-
-    cart.forEach(item => {
-
-        salesHistory.push({
-
-            name: item.name,
-
-            qty: item.qty,
-
-            total: item.price * item.qty
-
-        });
-
-    });
-
-    staffHistory.push({
-        customerName: customerName,
-        table: customerTable,
-        items: cart.map(item => ({
-            name: item.name,
-            qty: item.qty,
-            price: Number(item.price),
-            total: Number(item.price) * Number(item.qty)
-        })),
-        total: Number(total),
-        status: amountOwed > 0 ? "Unpaid" : "Paid",
-        time: new Date().toLocaleString([], {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        })
-    });
-
-    if (currentCustomer !== null && customers[currentCustomer]) {
-        const customer = customers[currentCustomer];
-        customer.orders.push({
-            items: cart.map(item => ({ ...item })),
-            total: total,
-            paid: amountPaid,
-            owed: amountOwed,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            date: new Date().toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' }),
-            status: amountOwed > 0 ? "Unpaid" : "Paid"
-        });
-
-        customer.owed = Number(customer.owed || 0) + amountOwed;
-        customer.paid = Number(customer.paid || 0) + amountPaid;
-        customer.cart = [];
-        saveCustomers();
-        displayCustomers();
-        if (typeof loadSummary === "function") {
-            loadSummary();
+    try {
+        await saveCustomers();
+        const cartTotal = cart.reduce((sum, item) => sum + Number(item.price) * Number(item.qty), 0);
+        const amountInput = prompt(`Sale total: ₦${cartTotal.toLocaleString()}\nHow much did the customer pay now?`, String(cartTotal));
+        if (amountInput === null) return;
+        const amountPaid = Number(amountInput.trim());
+        if (!/^\d+$/.test(amountInput.trim()) || !Number.isSafeInteger(amountPaid) || amountPaid > cartTotal) {
+            alert("Enter a whole amount between ₦0 and the sale total.");
+            return;
         }
+        const sale = await PalmVillaApi.completeSale(customer.id, amountPaid);
+        showReceipt(sale.items, sale.total, sale.customerName);
+        currentCustomer = null;
+        cart = [];
+        await loadData();
+        alert(sale.amountOwed > 0
+            ? `Sale completed. Customer still owes ₦${sale.amountOwed.toLocaleString()}.`
+            : "Sale completed and saved.");
+    } catch (error) {
+        alert(`Sale was not completed: ${error.message}`);
     }
-
-    saveData();
-
-    updateDashboard();
-
-    displaySalesHistory();
-    displayStaffHistory();
-
-    showReceipt(cart, total, customerName);
-    alert(amountOwed > 0 ? `Sale Completed. Customer still owes ₦${amountOwed.toLocaleString()}.` : "Sale Completed Successfully!");
-
-    cart = [];
-
-    displayCart();
-}
-
-function recordCustomerPayment(index, amount) {
-    if (!customers[index]) return;
-
-    const customer = customers[index];
-    const payment = Number(amount);
-
-    if (isNaN(payment) || payment <= 0) {
-        alert("Please enter a valid payment amount.");
-        return;
-    }
-
-    const currentDebt = Number(customer.owed || 0);
-    const reducedDebt = Math.max(currentDebt - payment, 0);
-    customer.owed = reducedDebt;
-    customer.payments = Array.isArray(customer.payments) ? customer.payments : [];
-    customer.payments.push({
-        amount: payment,
-        time: new Date().toLocaleString([], {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        })
-    });
-
-    if (Array.isArray(customer.orders)) {
-        customer.orders.forEach((order) => {
-            if (Number(order.owed || 0) > 0 && payment > 0) {
-                const orderReduction = Math.min(Number(order.owed || 0), payment);
-                order.owed = Math.max(Number(order.owed || 0) - orderReduction, 0);
-                order.paid = Number(order.paid || 0) + orderReduction;
-                order.status = order.owed > 0 ? "Unpaid" : "Paid";
-                payment -= orderReduction;
-            }
-        });
-    }
-
-    saveCustomers();
-    displayCustomers();
-    if (typeof loadSummary === "function") {
-        loadSummary();
-    }
-
-    alert(`${customer.name} payment recorded successfully.`);
 }
 
 function clearCart() {
+    rollOverBusinessDayIfNeeded();
     const customer = getSelectedCustomer();
     const customerName = customer ? customer.name : "Walk-in";
     const customerTable = customer ? customer.table : "Walk-in";
@@ -477,12 +586,13 @@ function clearCart() {
                 minute: '2-digit'
             })
         });
-        saveData();
+        PalmVillaApi.logActivity("cart-cleared", customer?.id, clearedItems, clearedTotal)
+            .catch((error) => console.warn("Activity log failed:", error));
     }
 
     if (customer) {
         customer.cart = [];
-        saveCustomers();
+        saveCustomers().catch(() => {});
     }
 
     cart = [];
@@ -511,14 +621,14 @@ function showReceipt(items, total, customerName = "Walk-in") {
         const itemTotal = item.price * item.qty;
         return `
             <div class="receipt-row">
-                <span>${item.name} x${item.qty}</span>
+                <span>${escapeHtml(item.name)} x${Number(item.qty) || 0}</span>
                 <span>₦${itemTotal.toLocaleString()}</span>
             </div>
         `;
     }).join("");
 
     receiptContent.innerHTML = `
-        <p><strong>Customer:</strong> ${customerName}</p>
+        <p><strong>Customer:</strong> ${escapeHtml(customerName)}</p>
         <p><strong>Time:</strong> ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
         ${rows}
         <div class="receipt-total">Total: ₦${total.toLocaleString()}</div>
@@ -528,25 +638,7 @@ function showReceipt(items, total, customerName = "Walk-in") {
 }
 
 function resetToday() {
-    const confirmed = confirm("Reset all today's sales, expenses, and customer data?");
-
-    if (!confirmed) return;
-
-    sales = 0;
-    expenses = 0;
-    salesHistory = [];
-    staffHistory = [];
-    customers = [];
-    currentCustomer = null;
-    cart = [];
-    localStorage.removeItem("palmVillaCustomers");
-    saveData();
-    displayCustomers();
-    displayCart();
-    updateDashboard();
-    displaySalesHistory();
-    displayStaffHistory();
-    alert("Today's data has been reset.");
+    alert("Business records are kept permanently. Daily reports roll over automatically at midnight.");
 }
 
 
@@ -578,14 +670,9 @@ function displaySalesHistory() {
 
         let row = table.insertRow();
 
-        row.insertCell(0).innerHTML =
-            item.name;
-
-        row.insertCell(1).innerHTML =
-            item.qty;
-
-        row.insertCell(2).innerHTML =
-            "₦" + Number(item.total || 0).toLocaleString();
+        row.insertCell(0).textContent = item.name;
+        row.insertCell(1).textContent = item.qty;
+        row.insertCell(2).textContent = "₦" + Number(item.total || 0).toLocaleString();
 
     });
 
@@ -611,12 +698,12 @@ function displayStaffHistory() {
         let row = table.insertRow();
         const itemsText = (entry.items || []).map(item => `${item.name} x${item.qty}`).join(', ') || 'No items';
 
-        row.insertCell(0).innerHTML = entry.time || 'N/A';
-        row.insertCell(1).innerHTML = entry.customerName || 'Walk-in';
-        row.insertCell(2).innerHTML = entry.table || 'N/A';
-        row.insertCell(3).innerHTML = entry.status || 'Completed';
-        row.insertCell(4).innerHTML = itemsText;
-        row.insertCell(5).innerHTML = "₦" + Number(entry.total || 0).toLocaleString();
+        row.insertCell(0).textContent = entry.time || 'N/A';
+        row.insertCell(1).textContent = entry.customerName || 'Walk-in';
+        row.insertCell(2).textContent = entry.table || 'N/A';
+        row.insertCell(3).textContent = entry.status || 'Completed';
+        row.insertCell(4).textContent = itemsText;
+        row.insertCell(5).textContent = "₦" + Number(entry.total || 0).toLocaleString();
     });
 
 }
@@ -627,6 +714,7 @@ function displayStaffHistory() {
 // ===============================
 
 function addExpense() {
+    rollOverBusinessDayIfNeeded();
 
     let amount =
         prompt("Enter expense amount:");
@@ -651,15 +739,12 @@ function addExpense() {
     }
 
 
-    expenses += amount;
-
-
-    saveData();
-
-    updateDashboard();
-
-
-    alert("Expense Added Successfully!");
+    const description = prompt("What was this expense for?", "General expense");
+    if (description === null) return;
+    PalmVillaApi.addExpense(amount, description)
+        .then(() => loadData())
+        .then(() => alert("Expense saved."))
+        .catch((error) => alert(`Expense was not saved: ${error.message}`));
 
 }
 
@@ -698,23 +783,22 @@ function addSale() {
 // REPORT
 // ===============================
 
-function viewReport() {
-
-    alert(
-
-        "🌴 PALM VILLA DAILY REPORT\n\n" +
-
-        "Sales: ₦" +
-        sales.toLocaleString() +
-
-        "\nExpenses: ₦" +
-        expenses.toLocaleString() +
-
-        "\nProfit: ₦" +
-        (sales - expenses).toLocaleString()
-
-    );
-
+async function viewReport() {
+    const reportDate = document.getElementById("reportDate")?.value;
+    const output = document.getElementById("reportResult");
+    if (!reportDate || !output) return;
+    output.textContent = "Loading report…";
+    try {
+        const report = await PalmVillaApi.getReport(reportDate);
+        output.innerHTML = `<h3>Report for ${escapeHtml(report.date)}</h3>
+            <p>Sales: ₦${Number(report.sales).toLocaleString()} · ${report.saleCount} completed sale(s)</p>
+            <p>Expenses: ₦${Number(report.expenses).toLocaleString()}</p>
+            <p>Profit: ₦${Number(report.profit).toLocaleString()}</p>
+            <h4>Sales</h4>${report.salesItems.map(sale => `<div class="report-sale"><p>${escapeHtml(sale.time)} · ${escapeHtml(sale.customer)} (${escapeHtml(sale.table)}) · ₦${Number(sale.total).toLocaleString()}</p>${(sale.items || []).map(item => `<small>${escapeHtml(item.name)} × ${Number(item.qty) || 0}</small>`).join(" · ")}</div>`).join("") || "<p>No sales for this date.</p>"}
+            <h4>Expenses</h4>${report.expensesList.map(item => `<p>${escapeHtml(item.description)} · ₦${Number(item.amount).toLocaleString()}</p>`).join("") || "<p>No expenses for this date.</p>"}`;
+    } catch (error) {
+        output.textContent = `Report could not be loaded: ${error.message}`;
+    }
 }
 
 function openWorkerOrders() {
@@ -727,11 +811,18 @@ function openWorkerOrders() {
 // ===============================
 
 loadData();
+synchronizeMenuPrices();
+initializeMenuFilters();
+initializeManagerMenuSearch();
+window.setInterval(() => {
+    rollOverBusinessDayIfNeeded();
+    if (!PalmVillaApi.hasPendingCartWrites()) loadData({ quiet: true });
+}, 5_000);
 // ===============================
 // DRINKS INVENTORY
 // ===============================
 
-let drinks = JSON.parse(localStorage.getItem("palmVillaDrinks")) || [];
+let drinks = [];
 
 function addDrink() {
 
@@ -756,42 +847,17 @@ function addDrink() {
         return;
     }
 
-    let stock = bought - sold;
-
-    let purchaseCost = bought * buyPrice;
-
-    let sales = sold * sellPrice;
-
-    let costOfSoldDrinks = sold * buyPrice;
-
-    let profit = sales - costOfSoldDrinks;
-
-    drinks.push({
-        brand: brand,
-        bought: bought,
-        buyPrice: buyPrice,
-        sold: sold,
-        sellPrice: sellPrice,
-        stock: stock,
-        purchaseCost: purchaseCost,
-        sales: sales,
-        profit: profit
-    });
-    localStorage.setItem(
-    "palmVillaDrinks",
-    JSON.stringify(drinks)
-);
-
-    displayDrinks();
-    updateDrinkSummary();
-
-    alert("Drink added successfully!");
-
-    document.getElementById("drinkBrand").value = "";
-    document.getElementById("drinkBought").value = "";
-    document.getElementById("drinkBuyPrice").value = "";
-    document.getElementById("drinkSold").value = "";
-    document.getElementById("drinkSellPrice").value = "";
+    PalmVillaApi.addDrink({ brand, bought, buyPrice, sold, sellPrice })
+        .then(() => loadData())
+        .then(() => {
+            alert("Drink inventory saved.");
+            document.getElementById("drinkBrand").value = "";
+            document.getElementById("drinkBought").value = "";
+            document.getElementById("drinkBuyPrice").value = "";
+            document.getElementById("drinkSold").value = "";
+            document.getElementById("drinkSellPrice").value = "";
+        })
+        .catch((error) => alert(`Drink inventory was not saved: ${error.message}`));
 }
 
 
@@ -803,12 +869,12 @@ function displayDrinks() {
     list.innerHTML = "";
 
     drinks.forEach(function(drink) {
-        
+
 
         list.innerHTML += `
             <div class="drink-item">
 
-                <h3>${drink.brand}</h3>
+                <h3>${escapeHtml(drink.brand)}</h3>
 
                 <p>Bought: ${drink.bought}</p>
 
@@ -866,7 +932,8 @@ if (document.getElementById("drinksList")) {
     displayDrinks();
     updateDrinkSummary();
 }
-function createCustomer() {
+async function createCustomer() {
+    rollOverBusinessDayIfNeeded();
 
     let name = document.getElementById("customerName").value.trim();
     let table = document.getElementById("tableNumber").value;
@@ -876,45 +943,19 @@ function createCustomer() {
         return;
     }
 
-    customers.push(normalizeCustomerRecord({
-        name: name,
-        table: table,
-        cart: [],
-        orders: [],
-        owed: 0,
-        paid: 0,
-        payments: []
-    }));
-
-    const newCustomer = customers[customers.length - 1];
-    staffHistory.push({
-        type: "customer-created",
-        status: "Created",
-        customerName: name,
-        table: table,
-        items: [],
-        total: 0,
-        time: new Date().toLocaleString([], {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        })
-    });
-    saveData();
-
-    currentCustomer = customers.length - 1;
-    saveCustomers();
-    displayCustomers();
-    syncCartWithCustomer();
-    displayStaffHistory();
-    if (typeof loadSummary === "function") {
-        loadSummary();
+    try {
+        const newCustomer = await PalmVillaApi.createCustomer(name, table);
+        customers.unshift(newCustomer);
+        currentCustomer = 0;
+        document.getElementById("customerName").value = "";
+        displayCustomers();
+        syncCartWithCustomer();
+        displayStaffHistory();
+        if (typeof loadSummary === "function") loadSummary();
+        alert(name + " is now selected for ordering.");
+    } catch (error) {
+        alert(`Customer order could not be created: ${error.message}`);
     }
-
-    document.getElementById("customerName").value = "";
-    alert(name + " is now selected for ordering.");
 }
 
 function displayCustomers() {
@@ -925,24 +966,22 @@ function displayCustomers() {
 
     list.innerHTML = "";
 
-    if (customers.length === 0) {
+    const openCustomers = customers.map((customer, index) => ({ customer, index })).filter(({ customer }) => !customer.closed);
+    if (openCustomers.length === 0) {
         list.textContent = "No active customers.";
         return;
     }
 
-    customers.forEach((customer, index) => {
+    openCustomers.forEach(({ customer, index }) => {
         let activeClass = currentCustomer === index ? "style=\"border-left-color:#00ff88; background:#2a3b2a;\"" : "";
         const currentItems = (customer.cart || []).map(item => `${item.name} x${item.qty}`).join(", ") || "No items yet";
-        const outstanding = Number(customer.owed || 0);
-        const orderCount = (customer.orders || []).length;
 
         list.innerHTML += `
             <div class="customer-card" ${activeClass} onclick="selectCustomer(${index})">
-                <strong>${customer.name}</strong><br>
-                ${customer.table}<br>
-                <small>${orderCount} order(s)</small>
-                <div style="margin-top:8px; font-size:12px; color:#86efac;">Owed: ₦${outstanding.toLocaleString()}</div>
-                <div style="margin-top:4px; font-size:12px; color:#dbeafe;">${currentItems}</div>
+                <strong>${escapeHtml(customer.name)}</strong><br>
+                ${escapeHtml(customer.table)}<br>
+                <small>${customer.orders.length} order(s)</small>
+                <div style="margin-top:8px; font-size:12px; color:#dbeafe;">${escapeHtml(currentItems)}</div>
             </div>
         `;
 

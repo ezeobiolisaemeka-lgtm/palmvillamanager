@@ -9,14 +9,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#facc15">
+    <meta name="theme-color" content="#008000">
     <link rel="icon" href="./logo-192.svg" sizes="192x192">
     <link rel="apple-touch-icon" href="./logo-512.svg">
     <style>
         body {
             margin: 0;
             font-family: "Segoe UI", Arial, sans-serif;
-            background: linear-gradient(180deg, #0d1117 0%, #111827 100%);
+            background: linear-gradient(180deg, #342116 0%, #1b110c 58%, #120b08 100%);
             color: #f8fafc;
         }
 
@@ -37,6 +37,25 @@
             margin: 0;
             color: #facc15;
             font-size: 2rem;
+        }
+
+        .brand-lockup {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .brand-lockup img {
+            width: 52px;
+            height: 52px;
+            object-fit: contain;
+        }
+
+        .brand-lockup h3 {
+            margin: 0;
+            color: #facc15;
+            font-size: 1.35rem;
         }
 
         .topbar-actions {
@@ -123,8 +142,8 @@
 
         .print-btn {
             border: none;
-            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
-            color: #062b1b;
+            background: linear-gradient(135deg, #fde047 0%, #f59e0b 100%);
+            color: #2b1809;
             padding: 12px 18px;
             border-radius: 12px;
             font-weight: 800;
@@ -132,7 +151,7 @@
         }
 
         .stat-box {
-            background: linear-gradient(180deg, rgba(30,41,59,0.95), rgba(15,23,42,0.98));
+            background: linear-gradient(180deg, rgba(76,52,36,0.96), rgba(42,28,20,0.98));
             border-radius: 18px;
             padding: 20px;
             border: 1px solid rgba(250,204,21,0.12);
@@ -156,7 +175,7 @@
             padding: 14px 16px;
             border-radius: 12px;
             border: 1px solid rgba(148,163,184,0.25);
-            background: #0f172a;
+            background: #2f1f16;
             color: #fff;
             font-size: 16px;
             box-sizing: border-box;
@@ -190,7 +209,7 @@
         }
 
         .summary-card {
-            background: linear-gradient(180deg, rgba(30,41,59,0.95), rgba(15,23,42,0.98));
+            background: linear-gradient(180deg, rgba(76,52,36,0.96), rgba(42,28,20,0.98));
             padding: 20px;
             border-radius: 18px;
             border: 1px solid rgba(250,204,21,0.12);
@@ -198,7 +217,7 @@
         }
 
         .customer-directory {
-            background: linear-gradient(180deg, rgba(30,41,59,0.95), rgba(15,23,42,0.98));
+            background: linear-gradient(180deg, rgba(76,52,36,0.96), rgba(42,28,20,0.98));
             border-radius: 18px;
             border: 1px solid rgba(250,204,21,0.12);
             padding: 20px;
@@ -218,7 +237,7 @@
         }
 
         .directory-card {
-            background: rgba(15, 23, 42, 0.9);
+            background: rgba(50, 34, 25, 0.88);
             border: 1px solid rgba(148,163,184,0.2);
             border-radius: 12px;
             padding: 14px;
@@ -284,7 +303,7 @@
         }
 
         .empty {
-            background: rgba(15,23,42,0.96);
+            background: rgba(54, 36, 26, 0.96);
             border: 1px solid rgba(148,163,184,0.2);
             border-radius: 14px;
             padding: 20px;
@@ -309,9 +328,9 @@
         }
 
         .secondary-btn {
-            background: rgba(148,163,184,0.12);
-            color: #f8fafc;
-            border: 1px solid rgba(148,163,184,0.2);
+            background: linear-gradient(135deg, #fde047 0%, #f59e0b 100%);
+            color: #2b1809;
+            border: 1px solid rgba(250, 204, 21, 0.45);
         }
 
         @media print {
@@ -344,12 +363,17 @@
 </head>
 <body>
     <div class="orders-container">
+        <div class="brand-lockup">
+            <img src="./logo-192.svg" alt="Palm Villa logo">
+            <h3>🌴 Palm Villa</h3>
+        </div>
         <div class="topbar">
             <h1 id="pageTitle">📋 Staff Order Sheet</h1>
             <div class="topbar-actions">
+                <a class="secondary-btn" href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer">Ask AI ↗</a>
                 <a id="orderEntryLink" class="secondary-btn" href="orders.html">Order Entry</a>
-                <a class="secondary-btn" href="debts.html">Outstanding Accounts</a>
                 <a class="back-btn" href="index.html?manager=1">Manager POS</a>
+                <button class="back-btn" type="button" onclick="PalmVillaApi.logout()">Sign out</button>
             </div>
         </div>
 
@@ -369,6 +393,7 @@
             <button id="printSummaryBtn" class="print-btn" type="button">Print Summary</button>
         </div>
 
+        <div class="entry-grid">
         <div class="card" id="newCustomerCard">
             <h2>👤 New Customer</h2>
             <input type="text" id="customerName" placeholder="Customer Name">
@@ -390,73 +415,90 @@
             <h2>🟢 Active Orders</h2>
             <div id="customerList">No active customers.</div>
         </div>
+        </div>
 
+        <section class="staff-workspace">
+        <div class="staff-menu-layout">
         <h2 id="staffMenuTitle">🍽 Staff Menu</h2>
 
-        <div class="menu-section" id="staffMenuBlock">
-            <h3>Meals</h3>
-            <div class="menu-category">
-                <div class="item"><h3>🥩 Isi Ewu</h3><p>₦9,000</p><button onclick="addToCart('Isi Ewu', 9000)">ADD</button></div>
-                <div class="item"><h3>🍖 Nkwobi</h3><p>₦3,000</p><button onclick="addToCart('Nkwobi', 3000)">ADD</button></div>
-                <div class="item"><h3>🥣 Pepper Soup</h3><p>₦4,000</p><button onclick="addToCart('Pepper Soup', 4000)">ADD</button></div>
-                <div class="item"><h3>🐟 Catfish Peppersoup</h3><p>₦16,000</p><button onclick="addToCart('Catfish Peppersoup', 16000)">ADD</button></div>
-                <div class="item"><h3>🥗 Ugba</h3><p>₦3,000</p><button onclick="addToCart('Ugba', 3000)">ADD</button></div>
-                <div class="item"><h3>🍲 Assorted Pomo (per piece)</h3><p>₦200</p><button onclick="addToCart('Assorted Pomo', 200)">ADD</button></div>
-                <div class="item"><h3>🍛 Abacha</h3><p>₦3,000</p><button onclick="addToCart('Abacha', 3000)">ADD</button></div>
+        <div class="menu-toolbar" id="menuToolbar">
+            <label class="menu-search-wrap" for="menuSearch">
+                <span aria-hidden="true">⌕</span>
+                <input id="menuSearch" class="search-box" type="search" placeholder="Search meals and drinks" autocomplete="off">
+            </label>
+            <div class="category-tabs" role="group" aria-label="Filter menu category">
+                <button class="category-tab is-active" type="button" aria-pressed="true" data-category-filter="all">All items</button>
+                <button class="category-tab" type="button" aria-pressed="false" data-category-filter="meals">Meals</button>
+                <button class="category-tab" type="button" aria-pressed="false" data-category-filter="beer">Beer & spirits</button>
+                <button class="category-tab" type="button" aria-pressed="false" data-category-filter="water">Water</button>
+                <button class="category-tab" type="button" aria-pressed="false" data-category-filter="soft-drinks">Soft drinks</button>
             </div>
         </div>
 
-        <div class="menu-section">
+        <div class="menu-section" id="staffMenuBlock" data-staff-menu-section data-category="meals">
+            <h3>Meals</h3>
+            <div class="menu-category">
+                <div class="item"><h3>🍲 Assorted Pomo (per piece)</h3><p>₦200</p><button onclick="addToCart('Assorted Pomo', 200)">ADD</button></div>
+                <div class="item"><h3>🍛 Panla</h3><p>₦1,500</p><button onclick="addToCart('Panla', 1500)">ADD</button></div>
+                <div class="item"><h3>🥥 Palm Wine</h3><p>₦3,000</p><button onclick="addToCart('Palm Wine', 3000)">ADD</button></div>
+            </div>
+        </div>
+
+        <div class="menu-section" data-staff-menu-section data-category="beer">
             <h3>Drinks</h3>
             <div class="menu-category">
-                <div class="item"><h3>🥤 Heineken</h3><p>₦2,500</p><button onclick="addToCart('Heineken', 2500)">ADD</button></div>
-                <div class="item"><h3>🥤 Gulder</h3><p>₦1,500</p><button onclick="addToCart('Gulder', 1500)">ADD</button></div>
+                <div class="item"><h3>🍺 Gulder</h3><p>₦1,500</p><button onclick="addToCart('Gulder', 1500)">ADD</button></div>
+                <div class="item"><h3>🍺 Desperado</h3><p>₦1,500</p><button onclick="addToCart('Desperado', 1500)">ADD</button></div>
+                <div class="item"><h3>🍺 Budweiser</h3><p>₦1,500</p><button onclick="addToCart('Budweiser', 1500)">ADD</button></div>
+                <div class="item"><h3>🍺 Heineken</h3><p>₦1,500</p><button onclick="addToCart('Heineken', 1500)">ADD</button></div>
                 <div class="item"><h3>🥤 Trophy</h3><p>₦1,200</p><button onclick="addToCart('Trophy', 1200)">ADD</button></div>
-                <div class="item"><h3>🥤 Goldberg</h3><p>₦1,200</p><button onclick="addToCart('Goldberg', 1200)">ADD</button></div>
+                <div class="item"><h3>🥤 Goldberg</h3><p>₦1,300</p><button onclick="addToCart('Goldberg', 1300)">ADD</button></div>
                 <div class="item"><h3>🥤 Star</h3><p>₦1,500</p><button onclick="addToCart('Star', 1500)">ADD</button></div>
-                <div class="item"><h3>🥤 Guinness</h3><p>₦2,800</p><button onclick="addToCart('Guinness', 2800)">ADD</button></div>
-                <div class="item"><h3>🥤 33</h3><p>₦1,200</p><button onclick="addToCart('33', 1200)">ADD</button></div>
+                <div class="item"><h3>🥤 33</h3><p>₦1,300</p><button onclick="addToCart('33', 1300)">ADD</button></div>
                 <div class="item"><h3>🥤 Small Stout</h3><p>₦1,200</p><button onclick="addToCart('Small Stout', 1200)">ADD</button></div>
                 <div class="item"><h3>🥤 Big Stout</h3><p>₦2,000</p><button onclick="addToCart('Big Stout', 2000)">ADD</button></div>
                 <div class="item"><h3>🥤 Smire Off Ice</h3><p>₦1,200</p><button onclick="addToCart('Smire Off Ice', 1200)">ADD</button></div>
-                <div class="item"><h3>🥤 Red Bull</h3><p>₦2,000</p><button onclick="addToCart('Red Bull', 2000)">ADD</button></div>
-                <div class="item"><h3>🥤 Maltina</h3><p>₦1,000</p><button onclick="addToCart('Maltina', 1000)">ADD</button></div>
-                <div class="item"><h3>🥤 Amstel Malta</h3><p>₦1,200</p><button onclick="addToCart('Amstel Malta', 1200)">ADD</button></div>
-                <div class="item"><h3>🥤 Bigi Apple</h3><p>₦800</p><button onclick="addToCart('Bigi Apple', 800)">ADD</button></div>
-                <div class="item"><h3>🥤 Bigi Orange</h3><p>₦800</p><button onclick="addToCart('Bigi Orange', 800)">ADD</button></div>
                 <div class="item"><h3>🥃 Gordon's</h3><p>₦10,000</p><button onclick="addToCart('Gordon\'s', 10000)">ADD</button></div>
                 <div class="item"><h3>🥃 Best Whiskey</h3><p>₦2,500</p><button onclick="addToCart('Best Whiskey', 2500)">ADD</button></div>
                 <div class="item"><h3>🥃 Longrider</h3><p>₦1,600</p><button onclick="addToCart('Longrider', 1600)">ADD</button></div>
                 <div class="item"><h3>🥃 Legend</h3><p>₦1,500</p><button onclick="addToCart('Legend', 1500)">ADD</button></div>
                 <div class="item"><h3>🥃 Eagle</h3><p>₦1,200</p><button onclick="addToCart('Eagle', 1200)">ADD</button></div>
+                <div class="item"><h3>🥃 Castle Lite</h3><p>₦1,300</p><button onclick="addToCart('Castle Lite', 1300)">ADD</button></div>
             </div>
         </div>
 
-        <div class="menu-section">
+        <div class="menu-section" data-staff-menu-section data-category="water">
             <h3>Water</h3>
             <div class="menu-category">
                 <div class="item"><h3>💧 Table Water</h3><p>₦300</p><button onclick="addToCart('Table Water', 300)">ADD</button></div>
+
             </div>
         </div>
 
-        <div class="menu-section">
+        <div class="menu-section" data-staff-menu-section data-category="soft-drinks">
             <h3>Soft Drinks</h3>
             <div class="menu-category">
-                <div class="item"><h3>🥤 Coke</h3><p>₦800</p><button onclick="addToCart('Coke', 800)">ADD</button></div>
-                <div class="item"><h3>🥤 Fanta</h3><p>₦800</p><button onclick="addToCart('Fanta', 800)">ADD</button></div>
-                <div class="item"><h3>🥤 Sprite</h3><p>₦800</p><button onclick="addToCart('Sprite', 800)">ADD</button></div>
-                <div class="item"><h3>🥤 Pepsi</h3><p>₦800</p><button onclick="addToCart('Pepsi', 800)">ADD</button></div>
+                <div class="item"><h3>🥤 Coke</h3><p>₦700</p><button onclick="addToCart('Coke', 700)">ADD</button></div>
+                <div class="item"><h3>🥤 Fanta</h3><p>₦700</p><button onclick="addToCart('Fanta', 700)">ADD</button></div>
+                <div class="item"><h3>🥤 Sprite</h3><p>₦700</p><button onclick="addToCart('Sprite', 700)">ADD</button></div>
+                <div class="item"><h3>🥤 Pepsi</h3><p>₦700</p><button onclick="addToCart('Pepsi', 700)">ADD</button></div>
+                <div class="item"><h3>🥤 Malt</h3><p>₦1000</p><button onclick="addToCart('Malt', 1000)">ADD</button></div>
+                <div class="item"><h3>🥤 Fayrouz</h3><p>₦1,000</p><button onclick="addToCart('Fayrouz', 1000)">ADD</button></div>
             </div>
         </div>
-
-        <div id="currentOrderBlock">
-            <h2>🛒 Current Order</h2>
-            <div id="cart"></div>
+        <p id="menuNoResults" class="empty menu-empty" hidden>No menu items match your search.</p>
         </div>
 
-        <h2>Total: <span id="total">₦0</span></h2>
-        <button onclick="completeSale()">✅ Complete Sale</button>
-        <button onclick="clearCart()">🗑 Clear Cart</button>
+        <div id="currentOrderBlock" class="card order-panel">
+            <div class="section-heading"><div><p class="eyebrow">ACTIVE TICKET</p><h2>🛒 Current Order</h2></div><span class="section-note">Your changes save as you go</span></div>
+            <div id="cart"></div>
+            <div class="order-total-row"><span>Order total</span><strong id="total">₦0</strong></div>
+            <div class="order-actions">
+                <button class="complete-order-btn" onclick="completeSale()">✅ Complete Sale</button>
+                <button class="clear-order-btn" onclick="clearCart()">Clear Cart</button>
+            </div>
+        </div>
+        </section>
 
         <div class="customer-directory" id="customerDirectorySection">
             <h2>👥 Customer List</h2>
@@ -466,6 +508,7 @@
         <div id="customerSummary" class="customer-summary"></div>
     </div>
 
+    <script src="api.js"></script>
     <script src="script.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
@@ -478,12 +521,25 @@
         const urlParams = new URLSearchParams(window.location.search);
         const summaryMode = urlParams.get('summary') === '1';
 
+        function escapeSummaryHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            })[character]);
+        }
+
         if (summaryMode) {
             document.getElementById('pageTitle').textContent = '📋 Staff Summary';
             document.getElementById('orderEntryLink').style.display = 'inline-block';
-            ['newCustomerCard', 'activeOrdersCard', 'staffMenuBlock', 'currentOrderBlock', 'staffMenuTitle'].forEach((id) => {
+            ['newCustomerCard', 'activeOrdersCard', 'currentOrderBlock', 'staffMenuTitle', 'menuToolbar'].forEach((id) => {
                 const el = document.getElementById(id);
                 if (el) el.style.display = 'none';
+            });
+            document.querySelectorAll('[data-staff-menu-section]').forEach((section) => {
+                section.style.display = 'none';
             });
         } else {
             document.getElementById('orderEntryLink').style.display = 'none';
@@ -495,8 +551,8 @@
                 const orderCount = (customer.orders || []).length;
                 return `
                     <div class="directory-card">
-                        <strong>${customer.name}</strong>
-                        <span>Table: ${customer.table}</span>
+                    <strong>${escapeSummaryHtml(customer.name)}</strong>
+                    <span>Table: ${escapeSummaryHtml(customer.table)}</span>
                         <br>
                         <span>${orderCount} order(s)</span>
                     </div>
@@ -506,7 +562,6 @@
 
         function loadSummary() {
             const summaryBox = document.getElementById('customerSummary');
-            const customers = JSON.parse(localStorage.getItem('palmVillaCustomers')) || [];
             const searchValue = (document.getElementById('customerSearch')?.value || '').toLowerCase().trim();
 
             const filteredCustomers = customers.filter((customer) => {
@@ -533,8 +588,8 @@
                     ? orders.map((order, orderIndex) => {
                         const tableRows = (order.items || []).map(item => `
                             <tr>
-                                <td>${item.name}</td>
-                                <td>${item.qty}</td>
+                                <td>${escapeSummaryHtml(item.name)}</td>
+                                <td>${Number(item.qty) || 0}</td>
                                 <td>₦${(Number(item.price) * Number(item.qty)).toLocaleString()}</td>
                             </tr>
                         `).join('');
@@ -560,8 +615,8 @@
 
                 return `
                     <div class="summary-card">
-                        <h3>${customer.name}</h3>
-                        <div class="meta">Table: ${customer.table}</div>
+                        <h3>${escapeSummaryHtml(customer.name)}</h3>
+                        <div class="meta">Table: ${escapeSummaryHtml(customer.table)}</div>
                         ${orderTables}
                         <div class="total">Customer total: ₦${total.toLocaleString()}</div>
                     </div>

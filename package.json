@@ -1,0 +1,14 @@
+{
+  "name": "palm-villa-pos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Palm Villa POS with a persistent SQLite backend",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --experimental-sqlite --env-file-if-exists=.env server.js",
+    "dev": "node --watch --experimental-sqlite --env-file-if-exists=.env server.js",
+    "test": "node --experimental-sqlite --test"
+  }
+}

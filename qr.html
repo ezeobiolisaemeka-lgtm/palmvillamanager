@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Scan QR — Palm Villa</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;text-align:center;padding:2rem}
+    img{max-width:90%;height:auto;border:1px solid #ddd;padding:8px;background:#fff}
+    .btn{display:inline-block;margin:0.5rem;padding:0.6rem 1rem;border-radius:6px;border:1px solid #888;background:#f5f5f5;color:#111;cursor:pointer}
+  </style>
+</head>
+<body>
+  <h1>Scan to open Orders</h1>
+  <p>Scan this QR with your phone, or use the buttons below.</p>
+  <img src="qr.png" alt="QR code to orders" id="qr">
+  <div>
+    <button class="btn" id="open">Open Orders (Local)</button>
+    <button class="btn" id="copy">Copy Link (Local)</button>
+  </div>
+
+  <hr style="margin:1.25rem 0">
+  <h3>Public (for mobile data)</h3>
+  <p id="publicUrlWrap">Loading public URL…</p>
+  <div id="publicBtns" style="display:none">
+    <button class="btn" id="openPublic">Open Public URL</button>
+    <button class="btn" id="copyPublic">Copy Public URL</button>
+  </div>
+
+  <script>
+    const localUrl = new URL('./orders.html', location.href).href;
+    document.getElementById('open').addEventListener('click', ()=>{
+      window.open(localUrl, '_blank');
+    });
+    document.getElementById('copy').addEventListener('click', async ()=>{
+      try{
+        await navigator.clipboard.writeText(localUrl);
+        alert('Link copied: ' + localUrl);
+      }catch(e){
+        window.prompt('Copy this link:', localUrl);
+      }
+    });
+
+    // Load public tunnel URL from file if available
+    async function loadPublicUrl(){
+      try{
+        const r = await fetch('./current_tunnel_url.txt');
+        if(!r.ok) throw new Error('no file');
+        const txt = (await r.text()).trim();
+        if(!txt) throw new Error('empty');
+        const publicUrl = new URL(txt);
+        if (!['http:', 'https:'].includes(publicUrl.protocol)) throw new Error('invalid URL');
+        const el = document.getElementById('publicUrlWrap');
+        const link = document.createElement('a');
+        link.href = publicUrl.href;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = publicUrl.href;
+        el.replaceChildren(link);
+        document.getElementById('publicBtns').style.display = 'block';
+        document.getElementById('openPublic').addEventListener('click', ()=> window.open(publicUrl.href,'_blank','noopener'));
+        document.getElementById('copyPublic').addEventListener('click', async ()=>{
+          try{ await navigator.clipboard.writeText(publicUrl.href); alert('Public URL copied'); }catch(e){ window.prompt('Copy this public URL:', publicUrl.href); }
+        });
+      }catch(e){
+        document.getElementById('publicUrlWrap').textContent = 'No public URL available.';
+      }
+    }
+    loadPublicUrl();
+  </script>
+</body>
+</html>

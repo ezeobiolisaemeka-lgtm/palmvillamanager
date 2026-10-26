@@ -1,0 +1,19 @@
+name = "palm-villa-pos"
+main = "worker.js"
+compatibility_date = "2026-10-20"
+workers_dev = true
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+not_found_handling = "none"
+run_worker_first = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "palm-villa-pos"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+[vars]
+BUSINESS_TIME_ZONE = "Africa/Lagos"

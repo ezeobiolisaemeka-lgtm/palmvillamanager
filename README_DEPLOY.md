@@ -1,6 +1,36 @@
 # Production deployment notes
 
-## Recommended setup: Render + GitHub
+## Cloudflare Workers + D1 (recommended)
+
+The production app is a Cloudflare Worker backed by D1. Do not publish the repository as a Pages-only static site: sign-in, orders, debts, and reports need the Worker and database. The Worker serves an allowlist of frontend files, so backend source and configuration are not exposed as website assets.
+
+### Create the production database
+
+1. Install Node.js 22 or newer. In the repository, run `npm ci`, then `npx wrangler login` and complete Cloudflare's browser sign-in.
+2. Create the production database and update the local Wrangler config: `npx wrangler d1 create palm-villa-pos --binding DB --update-config`. Confirm `wrangler.toml` has a real `database_id`, then commit that non-secret ID. Never commit account tokens or app passwords.
+3. Before a live launch, export existing browser data from the old app's `/migration.html` and keep the export private. It contains customer and business records.
+
+### Connect GitHub Actions deployment
+
+The repository includes `.github/workflows/cloudflare-deploy.yml`. It deploys on pushes to `main` after deployment is enabled, and supports a manual run from GitHub Actions. Before enabling it, create the D1 database and commit its real ID in `wrangler.toml`.
+
+1. In GitHub, open the repository's **Settings > Secrets and variables > Actions**. Add repository secrets `CLOUDFLARE_API_TOKEN` (a token with Workers Scripts edit and D1 edit permissions) and `CLOUDFLARE_ACCOUNT_ID`.
+2. Under **Variables**, add `CLOUDFLARE_DEPLOY_ENABLED` with value `true`. This enables deployments on pushes to `main`.
+3. Add these as encrypted Worker secrets in Cloudflare **Workers & Pages > palm-villa-pos > Settings > Variables and Secrets** before opening the app:
+   - `SESSION_SECRET`: unique random string of at least 32 characters; keep it stable across deployments.
+   - `MANAGER_USERNAME`: at least 3 characters.
+   - `MANAGER_PASSWORD`: unique password of at least 12 characters.
+4. Run **Deploy Palm Villa to Cloudflare** from the repository's **Actions** tab for the first deployment. The workflow builds the allowlisted frontend, applies D1 migrations, then deploys the Worker. Later pushes to `main` deploy automatically.
+5. After a successful deploy, open the Worker’s `workers.dev` URL and sign in at `/login.html`. The manager dashboard is `/index.html`; staff use `/orders.html`. Change the initial manager password, then delete the `MANAGER_PASSWORD` secret. Import the old browser export at `/migration.html` and check customers, debts, menu prices, and reports before staff use the new address.
+6. If you own a domain in Cloudflare, add it under the Worker’s **Settings > Domains & Routes > Add > Custom Domain**. Cloudflare provisions DNS and HTTPS for the Worker. Use this stable HTTPS address for staff and QR codes.
+
+Keep preview deployments disabled until a separate preview D1 database and preview secrets are configured; otherwise a preview could use production data. Keep `SESSION_SECRET` unchanged so existing sessions remain valid. D1 Time Travel provides point-in-time recovery for the account plan’s retention window (7 days on Free, 30 days on Paid); periodically export a separate copy for recovery beyond that window. Check current Cloudflare plan limits and pricing before relying on the service for business operations.
+
+Cloudflare references: [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/), [D1 migrations](https://developers.cloudflare.com/d1/reference/migrations/), [D1 Time Travel](https://developers.cloudflare.com/d1/reference/time-travel/), [Worker custom domains](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/).
+
+## Node host with persistent storage
+
+## Existing Node setup: Render + GitHub
 
 The repository now includes `render.yaml` to define a Node web service, HTTPS health check, SQLite location, and persistent disk. Render's persistent disk requires a paid web service; the free service filesystem is temporary and would lose the POS database after a restart or deploy. GitHub Pages is static and cannot run this backend.
 

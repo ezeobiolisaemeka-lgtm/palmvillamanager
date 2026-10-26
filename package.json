@@ -2,13 +2,19 @@
   "name": "palm-villa-pos",
   "version": "1.0.0",
   "private": true,
-  "description": "Palm Villa POS with a persistent SQLite backend",
+  "description": "Palm Villa POS with Node/SQLite and Cloudflare Workers/D1 deployments",
   "engines": {
     "node": ">=22.13"
   },
   "scripts": {
     "start": "node --experimental-sqlite --env-file-if-exists=.env server.js",
     "dev": "node --watch --experimental-sqlite --env-file-if-exists=.env server.js",
-    "test": "node --experimental-sqlite --test"
+    "test": "node --experimental-sqlite --test",
+    "build": "node scripts/build-assets.mjs",
+    "cf:dev": "wrangler dev",
+    "cf:deploy": "wrangler d1 migrations apply DB --remote && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
   }
 }
